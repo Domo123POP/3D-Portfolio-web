@@ -1,0 +1,69 @@
+.navigation-container {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* This is the new centered, max-width container */
+.navigation-bounds {
+  max-width: 1536px; /* Corresponds to navbar */
+  margin: 0 auto;
+  position: relative; /* Creates a new positioning context for the arrows */
+  height: 100%;
+}
+
+.nav-left, .nav-right {
+  position: absolute;
+  top: 0;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.nav-left {
+  left: 2rem; /* Position inside the bounds container */
+}
+
+.nav-right {
+  right: 2rem; /* Position inside the bounds container */
+}
+
+.nav-arrow {
+  pointer-events: all; /* Make buttons clickable */
+  background-color: transparent;
+  border: none;
+  color: white;
+  font-size: 50px; /* Increase font size for visibility */
+  cursor: pointer;
+  transition: transform 0.2s, color 0.2s;
+  padding: 10px 20px; /* Increase clickable area */
+}
+
+.nav-arrow:hover {
+  color: #aaa; /* Change color on hover */
+  transform: scale(1.1); /* Slightly enlarge on hover */
+}
+
+/* 手機版樣式：讓箭頭與切換節點平行 */
+@media (max-width: 768px) {
+  .navigation-container {
+    top: auto; /* 取消垂直中心定位 */
+    bottom: 52%; /* 調整到約切換節點的高度 */
+  }
+
+  .nav-left {
+    left: 1rem; /* 減少左側間距 */
+  }
+
+  .nav-right {
+    right: 1rem; /* 減少右側間距 */
+  }
+
+  .nav-arrow {
+    font-size: 40px; /* 手機版稍微縮小箭頭 */
+    padding: 8px 16px;
+  }
+}

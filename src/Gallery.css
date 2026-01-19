@@ -1,0 +1,17 @@
+body {
+  overflow: hidden !important;
+}
+
+.video-container {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+/* 手機版樣式：整個 3D 場景往上移 */
+@media (max-width: 768px) {
+  .video-container {
+    transform: translateY(-5vh);
+  }
+}

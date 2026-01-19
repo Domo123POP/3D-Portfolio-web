@@ -1,0 +1,458 @@
+/* 1. 先宣告字體 */
+@font-face {
+  font-family: 'FuturaCyrillicLight'; /* 這是你自己取的名稱 */
+  src: url('../fonts/FuturaCyrillicLight.ttf') format('truetype'); /* 確認路徑正確 */
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: 'FuturaCyrillicLight', Helvetica, Arial, sans-serif;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* 防止捲軸出現 */
+  background-color: #050505; /* 極深灰色背景 (中性色調) */
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); opacity: 0.8; }
+  50% { transform: translateY(10px); opacity: 0.4; }
+  100% { transform: translateY(0px); opacity: 0.8; }
+}
+
+@keyframes floatUp {
+  0% { transform: translateY(0px); opacity: 0.8; }
+  50% { transform: translateY(-10px); opacity: 0.4; }
+  100% { transform: translateY(0px); opacity: 0.8; }
+}
+
+@keyframes expandSpacing {
+  from { letter-spacing: 70px; }
+  to { letter-spacing: 25px; }
+}
+
+/* --- 導覽節點 (Scene) --- */
+.nav-nodes {
+  position: absolute;
+  left: 50%;
+  top: auto;
+  bottom: 30px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0;
+  z-index: 10;
+}
+
+.nav-node {
+  width: 12px;
+  height: 18px;
+  background-color: rgba(150, 150, 150, 0.6);
+  margin: 0 13.5px;
+  cursor: pointer;
+  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 0 0 rgba(255, 255, 255, 0);
+}
+
+.nav-node.active {
+  height: 30px;
+  background-color: rgba(255, 255, 255, 1);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.8),
+              0 0 30px rgba(255, 255, 255, 0.4);
+}
+
+.nav-node:hover:not(.active) {
+  background-color: rgba(180, 180, 180, 0.8);
+}
+
+/* --- 響應式導覽列 (Navbar) --- */
+
+.navbar-container {
+  max-width: 1536px; /* 設定一個最大寬度 */
+  width: 100%;
+  margin: 0 auto; /* 水平置中 */
+  padding: 0 2rem; /* 兩側保留一些空間 */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-divider {
+  display: inline-block;
+  width: 1.5px;
+  height: 1rem;
+  background: rgba(255, 255, 255, 0.5);
+  transform: rotate(15deg);
+  margin: 0 5px;
+}
+
+.navbar-links-desktop {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.nav-link {
+  position: relative;
+  color: white;
+  text-decoration: none;
+  font-size: 1.1rem;
+  padding-bottom: 4px;
+  transition: transform 0.2s ease-out;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0%;
+  height: 2px;
+  background-color: white;
+  transition: width 0.3s ease-in-out;
+}
+
+.nav-link:hover {
+  transform: translateY(-2px);
+}
+
+.nav-link.active::after,
+.nav-link:hover::after {
+  width: 100%;
+}
+
+.navbar-toggle {
+  display: none; /* 電腦版隱藏 */
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+/* 手機版樣式 (寬度小於 768px) */
+
+@media (max-width: 768px) {
+
+  /* Navbar 切換為手機模式 */
+
+  .navbar-links-desktop { display: none; }
+
+  .navbar-toggle { display: block; }
+
+}
+
+
+
+/* --- Single 3D VFX Project Display --- */
+
+.project-display {
+  position: relative;
+  width: 100%;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column; /* Arrange GLB and info box vertically */
+  justify-content: center;
+  align-items: center;
+  color: white;
+  padding-top: 80px;
+  padding-bottom: 80px; /* Space for pagination */
+  pointer-events: none; /* Allow interaction with elements on Scene below */
+}
+
+
+
+.main-glb-container {
+  width: 100%;
+  max-width: 1200px;
+  aspect-ratio: 16 / 9; /* 16:9 aspect ratio */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  pointer-events: auto; /* Allow interaction with GLB viewer */
+}
+
+
+
+.main-glb-viewer {
+
+    width: 100%;
+
+    height: 100%;
+
+    border-radius: 10px;
+
+  background-color: transparent; /* Assuming a scene background */
+
+}
+
+
+
+.project-info-box {
+
+  background: rgba(0, 0, 0, 0.6);
+
+  backdrop-filter: blur(5px);
+
+  padding: 20px;
+
+  border-radius: 10px;
+
+  max-width: 1000px; /* Wider for new layout */
+
+  z-index: 5;
+
+  border: 1px solid rgba(255, 255, 255, 0.1);
+
+  margin-top: 20px; /* Space between GLB and info box */
+
+  display: flex; /* Use flexbox for internal layout */
+
+  gap: 20px; /* Space between text and video/divider */
+
+  pointer-events: auto; /* Allow interaction with info box */
+
+}
+
+
+
+.project-text-content {
+
+  flex: 1; /* Take up remaining space */
+
+  display: flex;
+
+  flex-direction: column;
+
+  justify-content: flex-start; /* Align items to the top */
+
+  text-align: left;
+
+}
+
+
+
+.project-text-content h2 {
+
+  margin: 0;
+
+  font-size: 2.5rem;
+
+  color: #fff;
+
+}
+
+
+
+.project-text-content p {
+
+
+
+  font-size: 1.1rem;
+
+
+
+  line-height: 1.6;
+
+
+
+  color: #ccc;
+
+
+
+  margin-top: 10px; /* Space between title and description */
+
+
+
+  margin-bottom: 0;
+
+
+
+  white-space: pre-line;
+
+
+
+}
+
+
+
+.divider {
+
+  width: 1px;
+
+  background-color: rgba(255, 255, 255, 0.3);
+
+  margin: 10px 0; /* Vertical margin for divider */
+
+}
+
+
+
+.project-video-container {
+
+  width: 40%; /* Video takes 40% of the info box width */
+
+  max-width: 400px; /* Max width for video container */
+
+  display: flex;
+
+  justify-content: flex-end; /* Align video to the right */
+
+  align-items: center;
+
+}
+
+
+
+.project-video {
+
+  width: 100%;
+
+  aspect-ratio: 16 / 9;
+
+  border-radius: 8px;
+
+  overflow: hidden;
+
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+
+  border: 1px solid rgba(255, 255, 255, 0.1);
+
+}
+
+
+
+/* --- Project Pagination (Footer) --- */
+.project-pagination {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  z-index: 10;
+  pointer-events: auto;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  justify-content: center;
+}
+
+.project-node {
+  display: block;
+  width: 12px;
+  height: 18px;
+  background-color: rgba(150, 150, 150, 0.6);
+  margin: 0 13.5px;
+  cursor: pointer;
+  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 0 0 rgba(255, 255, 255, 0);
+}
+
+.project-node:hover:not(.active) {
+  background-color: rgba(180, 180, 180, 0.8);
+}
+
+.project-node.active {
+  height: 30px;
+  background-color: rgba(255, 255, 255, 1);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.8),
+              0 0 30px rgba(255, 255, 255, 0.4);
+}
+
+/* Responsive adjustments for the new layout */
+@media (max-width: 1200px) {
+  .project-info-box {
+    max-width: 90%;
+    flex-direction: column; /* Stack text and video on smaller screens */
+    gap: 10px;
+  }
+  .project-text-content {
+    text-align: center;
+  }
+  .project-video-container {
+    width: 100%;
+    justify-content: center; /* Center video when stacked */
+  }
+  .divider {
+    width: 80%; /* Horizontal divider */
+    height: 1px;
+    margin: 10px auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .project-display {
+    padding-bottom: 60px;
+    padding-top: 20px;
+    justify-content: flex-start;
+    min-height: auto;
+  }
+  .main-glb-container {
+    padding: 10px;
+    width: 90%;
+    margin-top: 0;
+  }
+  .main-glb-viewer {
+    max-height: none;
+  }
+  .project-info-box {
+    max-width: 90%;
+    padding: 15px;
+  }
+  .project-text-content {
+    text-align: left; /* 文字靠左 */
+  }
+  .project-text-content h2 {
+    font-size: 2rem; /* 標題縮小 */
+  }
+  .project-text-content p {
+    font-size: 1rem; /* 內文縮小 */
+    line-height: 1.5; /* 調整行高 */
+  }
+  .divider {
+    display: none; /* 隱藏分隔線 */
+  }
+  .project-pagination {
+    margin-top: 16px;
+    margin-bottom: 4px;
+  }
+  .project-node {
+    width: 10px;
+    height: 15px;
+    margin: 0 20px;
+  }
+  .project-node.active {
+    height: 25px;
+  }
+}
+
+@media (max-width: 480px) {
+  .project-info-box h2 {
+    font-size: 1.5rem;
+  }
+  .project-text-content p {
+    font-size: 0.9rem;
+  }
+  .project-node {
+    width: 8px;
+    height: 12px;
+    margin: 0 15px;
+  }
+  .project-node.active {
+    height: 20px;
+  }
+}
+
+
+
+
+

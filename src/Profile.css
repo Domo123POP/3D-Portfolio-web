@@ -1,0 +1,327 @@
+/* Container for the whole profile page content */
+.profile-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-top: 100px;
+    padding-bottom: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    scroll-behavior: auto;
+    overscroll-behavior: contain;
+}
+
+/* The main card */
+.profile-card {
+    width: 90%;
+    max-width: 1200px;
+    background: rgba(5, 5, 5, 0.85);
+    backdrop-filter: blur(15px);
+    border-radius: 20px;
+    padding: 50px;
+    color: white;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 60px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 50px rgba(0,0,0,0.5);
+}
+
+/* Left and Right Columns */
+.profile-left-col {
+    flex: 1 1 300px;
+}
+
+.profile-right-col {
+    flex: 2 1 500px;
+}
+
+/* Image block */
+.profile-image-wrapper {
+    width: 100%;
+    aspect-ratio: 1/1;
+    background: #222;
+    border-radius: 15px;
+    overflow: hidden;
+    margin-bottom: 30px;
+    border: 1px solid rgba(255,255,255,0.1);
+    position: relative;
+}
+
+.profile-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Typography */
+.profile-left-col h1 {
+    font-size: 3.5rem;
+    margin: 0 0 10px 0;
+    letter-spacing: 2px;
+    font-weight: bold;
+}
+
+.profile-left-col .subtitle {
+    font-size: 1.2rem;
+    color: #888;
+    margin: 0 0 40px 0;
+    letter-spacing: 1px;
+}
+
+/* Contact and Icons */
+.contact-section {
+    border-top: 1px solid #333;
+    padding-top: 30px;
+}
+
+.contact-section h3 {
+    color: #fff;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+    letter-spacing: 1px;
+}
+
+.contact-section p {
+    color: #aaa;
+    line-height: 2;
+    font-size: 0.95rem;
+}
+
+.social-icons {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.social-icon {
+    line-height: 0;
+    text-decoration: none;
+}
+
+.social-icon svg {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    opacity: 0.7;
+}
+
+.social-icon:hover svg {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+/* Right column sections */
+.profile-section {
+    margin-bottom: 50px;
+}
+
+.profile-section h2 {
+    font-size: 1.5rem;
+    border-bottom: 1px solid #333;
+    padding-bottom: 15px;
+    margin-bottom: 25px;
+    color: #ccc;
+    letter-spacing: 2px;
+}
+
+.education-item h3 {
+    font-size: 1.6rem;
+    margin: 0 0 8px 0;
+    font-weight: 500;
+    color: #fff;
+}
+
+.education-item p {
+    font-size: 1.1rem;
+    color: #aaa;
+    margin: 0;
+}
+
+/* Expertise tags */
+.expertise-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.expertise-tag {
+    background: rgba(255,255,255,0.08);
+    padding: 10px 24px;
+    border-radius: 50px;
+    font-size: 0.95rem;
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #eee;
+    letter-spacing: 1px;
+}
+
+/* Software skills */
+.software-skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 30px 50px;
+}
+
+.skill-item-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 0.95rem;
+    color: #ccc;
+}
+
+.skill-item-info span:last-child {
+    opacity: 0.6;
+}
+
+.skill-progress-bar {
+    width: 100%;
+    height: 4px;
+    background: #222;
+    border-radius: 2px;
+}
+
+.skill-progress {
+    height: 100%;
+    background: white;
+    border-radius: 2px;
+    box-shadow: 0 0 10px rgba(255,255,255,0.5);
+}
+
+/* Biography */
+.biography p {
+    line-height: 1.8;
+    color: #aaa;
+    font-size: 1rem;
+    text-align: justify;
+}
+
+/* 簡化版自傳樣式 (手機版) */
+.simplified-biography p {
+    line-height: 1.6;
+    color: #aaa;
+    font-size: 0.95rem;
+    text-align: justify;
+    margin-top: 20px;
+}
+
+/* 桌面版隱藏手機版簡介 */
+.hide-on-desktop {
+    display: none;
+}
+
+/* 手機版隱藏文字 */
+.hide-on-mobile {
+    display: block;
+}
+
+/* 手機版樣式 (螢幕寬度小於 768px) */
+@media (max-width: 768px) {
+    /* 手機版顯示簡化介紹 */
+    .hide-on-desktop {
+        display: block;
+    }
+
+    /* 手機版隱藏完整 BIOGRAPHY 區塊 */
+    .desktop-biography {
+        display: none;
+    }
+
+    /* 手機版隱藏文字 */
+    .hide-on-mobile {
+        display: none;
+    }
+
+    /* 手機版 Domo 標題置中並縮小 */
+    .profile-left-col h1 {
+        font-size: 2.5rem;
+        text-align: center;
+    }
+
+    /* 手機版副標題樣式 */
+    .profile-left-col .subtitle {
+        font-size: 0.85rem;
+        text-align: center;
+        margin: 10px 0 0 0;
+        letter-spacing: 0.5px;
+    }
+
+    /* 手機版調整黑色毛玻璃框的大小和間距 */
+    .profile-card {
+        width: 90%;
+        padding: 30px 25px 25px 25px;
+    }
+
+    /* 手機版調整容器的上下間距，增加頂部空間 */
+    .profile-container {
+        padding-top: 80px;
+        padding-bottom: 40px;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+    }
+
+    /* 手機版簡易介紹與上方增加間距 */
+    .simplified-biography {
+        margin-top: 25px;
+        margin-bottom: 15px;
+    }
+
+    /* 手機版移除 contact 分隔線 */
+    .contact-section {
+        border-top: none;
+        padding-top: 0;
+    }
+
+    /* 手機版 social-icons 置中 */
+    .social-icons {
+        justify-content: center;
+    }
+
+    /* 手機版原本的右側欄位隱藏 */
+    .profile-right-col {
+        display: none;
+    }
+
+    /* 手機版 CONTACT 在框外 */
+    .contact-info-wrapper-mobile {
+        width: 90%;
+        margin-top: -50px;
+        text-align: center;
+    }
+
+    /* 手機版右側欄位在框外 */
+    .profile-right-col-mobile {
+        width: 90%;
+        margin-top: 15px;
+        padding: 0 20px 40px 20px;
+    }
+
+    /* 手機版 EXPERTISE 標籤優化 */
+    .profile-right-col-mobile .expertise-tags {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        justify-items: center;
+    }
+
+    .profile-right-col-mobile .expertise-tag {
+        width: 100%;
+        text-align: center;
+        padding: 10px 16px;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+    }
+
+    /* 手機版 SOFTWARE 兩欄式排版 */
+    .profile-right-col-mobile .software-skills-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px 15px;
+    }
+}
