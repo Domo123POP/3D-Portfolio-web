@@ -3,7 +3,7 @@ import { Canvas } from '@react-three/fiber';
 import { Suspense } from 'react';
 
 function Model(props: any) {
-  const { scene } = useGLTF('/glb_file/cnc_ok.glb');
+  const { scene } = useGLTF('/glb/cnc_ok.glb');
   return <primitive object={scene} {...props} />;
 }
 

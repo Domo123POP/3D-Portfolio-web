@@ -85,8 +85,8 @@ const framesData: FrameData[] = [
     width: 3.2, height: 1.33,
     scale: 1.0, // Optional: Controls the size of the frame, defaults to 1
     focusDistance: 2.8, // Optional: Distance from camera when focused, defaults to global value
-    textureUrl: '/video/megrez.mp4',
-    highResTextureUrl: '/video/megrez.mp4',
+    textureUrl: '/media/webm/megrez.webm',
+    highResTextureUrl: '/media/webm/megrez.webm',
     title: 'Music Video Direction | Megrez - 《北斗》',
     description: '導演 / 拍攝 / 剪輯 / 調色\n\n負責全片視覺統籌。針對饒舌音樂節奏，\n運用大量動態運鏡與色彩對比，強化藝人個人特質與形象。',
     videoUrl: 'https://vimeo.com/1154526952?share=copy&fl=sv&fe=ci', // Example YouTube URL
@@ -99,8 +99,8 @@ const framesData: FrameData[] = [
     id: 1,
     position: [2.5, 2.0, -2],
     width: 2.5, height: 1.4,
-    textureUrl: '/video/flash_cube.mp4',
-    highResTextureUrl: '/video/flash_cube.mp4',
+    textureUrl: '/media/webm/flash_cube.webm',
+    highResTextureUrl: '/media/webm/flash_cube.webm',
     title: 'Zen.V Bot Qi2.2 Fast Charger',
     description: '3D建模 / 動畫 / 剪輯\n\n針對嘖嘖募資平台產品製作的視覺形象片，\n進行了產品3D重建，透過數位動畫的技術，渲染出實拍無法達成的畫面。',
     videoUrl: 'https://www.youtube.com/watch?v=70F8bLD_H4U',
@@ -113,8 +113,8 @@ const framesData: FrameData[] = [
     id: 2,
     position: [-3.2, -1.7, -1],
     width: 1.5, height: 2.1,
-    textureUrl: '/png/blackmarket-poster.png',
-    highResTextureUrl: '/png/blackmarket-poster.png',
+    textureUrl: '/media/webp/blackmarket-poster.webp',
+    highResTextureUrl: '/media/webp/blackmarket-poster.webp',
     title: 'Brand Identity | Black Market Bar',
     description: '插畫 / 品牌識別設計\n\n為「私有市場」酒吧打造品牌視覺體系。\n從主視覺、活動海報到菜單裝幀設計，\n以獨特的視覺語彙詮釋品牌神祕調性，建立強烈的感官識別。',
     // 手機版設定
@@ -126,8 +126,8 @@ const framesData: FrameData[] = [
     id: 3,
     position: [3.2, -2.2, -1],
     width: 2.5, height: 1.65,
-    textureUrl: '/jpg/skmt-1.jpg',
-    highResTextureUrl: '/jpg/skmt-1.jpg',
+    textureUrl: '/media/webp/skmt-1.webp',
+    highResTextureUrl: '/media/webp/skmt-1.webp',
     title: 'skmt: 坂本龍一とは誰か',
     description: '書籍攝影\n\n運用極簡光影佈局，捕捉特種紙張紋理與裝幀細節，\n在影像中還原靜謐感與藝術張力。',
     // 手機版設定
@@ -141,8 +141,8 @@ const framesData: FrameData[] = [
     width: 1.6, height: 0.9,
     scale: 1.0,
     focusDistance: 1.8,
-    textureUrl: '/jpg/mirror_of_life.jpg',
-    highResTextureUrl: '/video/mirror_of_life.mp4',
+    textureUrl: '/media/webp/mirror_of_life.webp',
+    highResTextureUrl: '/media/webm/mirror_of_life.webm',
     title: 'Mirror of Life：職涯之鏡',
     description: '動態拍攝 / 產品攝影 / 剪輯\n\n為嘖嘖募資產品《職涯之鏡》製作產品形象影片。\n透過光影流動呈現溫暖調性，將其「職涯探索」與「諮商」的概念，轉化為具有共鳴的感官語彙。',
     videoUrl: 'https://youtu.be/A-fgp5iu2ik?si=s0obF5EcXCzHRUnG',
@@ -157,8 +157,8 @@ const framesData: FrameData[] = [
     width: 1.6, height: 0.9,
     scale: 2,
     focusDistance: 2.8,
-    textureUrl: '/jpg/duduba-1.jpg',
-    highResTextureUrl: '/video/duduba.mp4',
+    textureUrl: '/media/webp/duduba-1.webp',
+    highResTextureUrl: '/media/webm/duduba.webm',
     title: 'DUDUBAO：磁力片教具套組',
     description: '動態攝影 / 後期剪輯\n\n負責嘖嘖募資影像製作，具備兒童實場拍攝經驗，能有效捕捉不受控現場的自然瞬間。\n專案中著重產品色彩還原的準確性，並結合動態字卡與特效設計，\n將繁複的數理教具 logique 視覺化，呈現具備專業度與功能說服力的影像內容。',
     videoUrl: 'https://www.youtube.com/watch?v=MarAh60dR_I',
@@ -173,8 +173,8 @@ const framesData: FrameData[] = [
     width: 3.2, height: 1.8,
     scale: 1.3,
     focusDistance: 4.3,
-    textureUrl: '/png/ar-1.png',
-    highResTextureUrl: '/png/ar-1.png',
+    textureUrl: '/media/webp/ar-1.webp',
+    highResTextureUrl: '/media/webp/ar-1.webp',
     title: '《穿越真實的邊界》 | On the Edge of Reality ',
     description: '3D建模 / AR技術應用 / APP開發\n\n為無獨有偶劇團與德國圖賓根形體劇團於台中國家歌劇院之跨國製作打造互動體驗。\n負責懸絲偶之 3D 建模與 AR 應用程式開發，將虛擬技術注入傳統偶戲，\n在國家級舞台上實現虛實交錯的當代劇場視覺。',
     // 手機版設定
@@ -188,8 +188,8 @@ const framesData: FrameData[] = [
     width: 2, height: 2,
     scale: 1.7,
     focusDistance: 2.8,
-    textureUrl: '/png/skart-1.png',
-    highResTextureUrl: '/png/skart-1.png',
+    textureUrl: '/media/webp/skart-1.webp',
+    highResTextureUrl: '/media/webp/skart-1.webp',
     title: 'Graphic Design | Skart Skate Brand',
     description: '圖像設計 / 印刷監修 / 熱轉印實作\n\n為 Skart 滑板品牌設計系列服飾圖像。經由多方廠商諮詢與打樣測試，\n最終採用熱壓工藝自行印製，以掌握圖像在織品上的細節與色彩表現，\n實現從概念開發到成品製作的完整流程，確保設計調性精準轉化為實體。',
     // 手機版設定
@@ -203,8 +203,8 @@ const framesData: FrameData[] = [
     width: 1.6, height: 0.9,
     scale: 2,
     focusDistance: 3.5,
-    textureUrl: '/png/Porco_Rosso.png',
-    highResTextureUrl: '/video/Porco_Rosso.mp4',
+    textureUrl: '/media/webp/Porco_Rosso.webp',
+    highResTextureUrl: '/media/webm/Porco_Rosso.webm',
     title: 'Hotel Adriano - Porco Rosso',
     description: '場景還原 / 剪輯\n\n以 Minecraft 為載體，還原吉卜力經典動畫《紅豬》中的「吉娜旅店」。\n透過方塊構築與虛擬運鏡，在遊戲世界中再現亞得里亞海的浪漫氛圍，\n將動畫中的手繪空間轉譯為可穿梭的數位場景。',
     videoUrl: 'https://www.youtube.com/watch?v=j_A-UjwMQ5U',
@@ -219,8 +219,8 @@ const framesData: FrameData[] = [
     width: 1.6, height: 0.9,
     scale: 1.3,
     focusDistance: 2.8,
-    textureUrl: '/video/tv_noise.mp4',
-    highResTextureUrl: '/video/tv_noise.mp4',
+    textureUrl: '/media/webm/tv_noise.webm',
+    highResTextureUrl: '/media/webm/tv_noise.webm',
     title: 'SIGNAL LOST',
     description: '作品整理中，影像即將重現。',
     // 手機版設定
@@ -364,7 +364,7 @@ const subFramesData: SubFrameData[] = [
     id: 200,
     parentFrameId: 2,
     type: 'image' as const,
-    content: '/png/blackmarket-menu.png',
+    content: '/media/webp/blackmarket-menu.webp',
     position: [1.8, -1.0, 0.0] as [number, number, number],
     width: 1.2,
     height: 1.7,
@@ -377,7 +377,7 @@ const subFramesData: SubFrameData[] = [
     id: 201,
     parentFrameId: 2,
     type: 'image' as const,
-    content: '/png/blackmarket-logo.png',
+    content: '/media/webp/blackmarket-logo.webp',
     position: [1.5, 1.0, 0.0] as [number, number, number],
     width: 1.0,
     height: 1.0,
@@ -389,7 +389,7 @@ const subFramesData: SubFrameData[] = [
     id: 202,
     parentFrameId: 2,
     type: 'image' as const,
-    content: '/png/blackmarket-logored.png',
+    content: '/media/webp/blackmarket-logored.webp',
     position: [-1.8, 0.7, 0.0] as [number, number, number],
     width: 1.0,
     height: 1.0,
@@ -402,7 +402,7 @@ const subFramesData: SubFrameData[] = [
     id: 203,
     parentFrameId: 3,
     type: 'image' as const,
-    content: '/jpg/skmt-2.jpg',
+    content: '/media/webp/skmt-2.webp',
     position: [-1.7, 1.0, -0.2] as [number, number, number],
     width: 1.8,
     height: 1.0,
@@ -414,7 +414,7 @@ const subFramesData: SubFrameData[] = [
     id: 204,
     parentFrameId: 3,
     type: 'image' as const,
-    content: '/jpg/skmt-3.jpg',
+    content: '/media/webp/skmt-3.webp',
     position: [1.5, 1.3, 0.2] as [number, number, number],
     width: 1.8,
     height: 1.0,
@@ -426,7 +426,7 @@ const subFramesData: SubFrameData[] = [
     id: 205,
     parentFrameId: 3,
     type: 'image' as const,
-    content: '/jpg/skmt-4.jpg',
+    content: '/media/webp/skmt-4.webp',
     position: [2.0, -1.5, -0.15] as [number, number, number],
     width: 1.6,
     height: 1.0,
@@ -438,7 +438,7 @@ const subFramesData: SubFrameData[] = [
     id: 206,
     parentFrameId: 4,
     type: 'image' as const,
-    content: '/jpg/mirror_of_life-1.jpg',
+    content: '/media/webp/mirror_of_life-1.webp',
     position: [-1.4, -0.3, -0.15] as [number, number, number],
     width: 1.2,
     height: 0.9,
@@ -451,7 +451,7 @@ const subFramesData: SubFrameData[] = [
     id: 207,
     parentFrameId: 4,
     type: 'image' as const,
-    content: '/jpg/mirror_of_life-2.jpg',
+    content: '/media/webp/mirror_of_life-2.webp',
     position: [0.77, -0.8, 0.2] as [number, number, number],
     width: 1.2,
     height: 0.9,
@@ -464,7 +464,7 @@ const subFramesData: SubFrameData[] = [
     id: 208,
     parentFrameId: 4,
     type: 'image' as const,
-    content: '/jpg/mirror_of_life-3.jpg',
+    content: '/media/webp/mirror_of_life-3.webp',
     position: [1.0, 0.65, 0.1] as [number, number, number],
     width: 1.2,
     height: 0.9,
@@ -477,7 +477,7 @@ const subFramesData: SubFrameData[] = [
     id: 209,
     parentFrameId: 4,
     type: 'image' as const,
-    content: '/jpg/mirror_of_life-4.jpg',
+    content: '/media/webp/mirror_of_life-4.webp',
     position: [-1.5, 1.2, -0.75] as [number, number, number],
     width: 1.2,
     height: 0.9,
@@ -490,7 +490,7 @@ const subFramesData: SubFrameData[] = [
     id: 210,
     parentFrameId: 8,
     type: 'image' as const,
-    content: '/png/Porco_Rosso-1.png',
+    content: '/media/webp/Porco_Rosso-1.webp',
     position: [1.5, -1.45, 0.55] as [number, number, number],
     width: 1.6,
     height: 0.9,
@@ -503,7 +503,7 @@ const subFramesData: SubFrameData[] = [
     id: 211,
     parentFrameId: 8,
     type: 'image' as const,
-    content: '/png/Porco_Rosso-2.png',
+    content: '/media/webp/Porco_Rosso-2.webp',
     position: [-2.5, 1.6, -0.7] as [number, number, number],
     width: 1.6,
     height: 0.9,
@@ -516,7 +516,7 @@ const subFramesData: SubFrameData[] = [
     id: 212,
     parentFrameId: 7,
     type: 'image' as const,
-    content: '/png/skart-2.png',
+    content: '/media/webp/skart-2.webp',
     position: [2, 0.7, -0.7] as [number, number, number],
     width: 1.0,
     height: 1.0,
@@ -529,7 +529,7 @@ const subFramesData: SubFrameData[] = [
     id: 213,
     parentFrameId: 7,
     type: 'image' as const,
-    content: '/png/skart-3.png',
+    content: '/media/webp/skart-3.webp',
     position: [-2, 1.1, -0.7] as [number, number, number],
     width: 1,
     height: 1.5,
@@ -605,14 +605,31 @@ function VideoPlayer({ url, onClose }: { url: string, onClose: () => void }) {
 
 // --- COMPONENT DEFINITIONS ---
 
+// 檢測瀏覽器是否支援 webm
+const supportsWebm = (() => {
+  const video = document.createElement('video');
+  return video.canPlayType('video/webm; codecs="vp8, vorbis"') !== '' ||
+         video.canPlayType('video/webm; codecs="vp9"') !== '';
+})();
+
+// 根據瀏覽器支援度選擇影片格式
+const getVideoUrl = (url: string): string => {
+  if (url.endsWith('.webm') && !supportsWebm) {
+    // 不支援 webm 則改用 mp4
+    return url.replace('/media/webm/', '/media/mp4/').replace('.webm', '.mp4');
+  }
+  return url;
+};
+
 function TextureContent({ url, opacity, alphaMap }: { url: string; opacity: number; alphaMap: THREE.CanvasTexture }) {
-  const isVideo = url.endsWith('.mp4');
+  const isVideo = url.endsWith('.mp4') || url.endsWith('.webm');
+  const finalUrl = isVideo ? getVideoUrl(url) : url;
 
   // For mobile, only start video playback when opacity > 0.1 (visible)
   const shouldStartVideo = !isMobileDevice || opacity > 0.1;
   const texture = isVideo
-    ? useVideoTexture(url, { start: shouldStartVideo, loop: true, muted: true })
-    : useTexture(url);
+    ? useVideoTexture(finalUrl, { start: shouldStartVideo, loop: true, muted: true })
+    : useTexture(finalUrl);
 
   useMemo(() => {
     if (!texture.image) return;

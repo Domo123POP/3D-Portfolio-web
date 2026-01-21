@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { useEffect, useRef } from 'react';
 import Scene from './Scene';
-import headshotPng from '../png/headshot.png';
+import headshotWebp from '../media/webp/headshot.webp';
 import './Profile.css';
 
 export default function Profile() {
@@ -48,7 +48,7 @@ export default function Profile() {
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.3, duration: 0.5 }}
             >
-              <img src={headshotPng} alt="Profile" className="profile-image" />
+              <img src={headshotWebp} alt="Profile" className="profile-image" />
             </motion.div>
 
             <h1>Domo</h1>

@@ -7,12 +7,13 @@ import * as THREE from 'three';
 import { Selection, EffectComposer, Outline, Select } from '@react-three/postprocessing';
 
 // --- Import assets directly for Vite to handle paths ---
-import cncModelUrl from '../glb_file/cnc_ok.glb';
-import cubeModelUrl from '../glb_file/cube.glb';
-import cncGifUrl from '../gif/cnc_gif.gif';
-import cubeGifUrl from '../gif/cube_gif.gif';
-import headshotImageUrl from '../png/headshot.png';
-import threejsLogoUrl from '../png/threejs_logo.png';
+import cncModelUrl from '../media/glb/cnc_ok.glb';
+import cubeModelUrl from '../media/glb/cube.glb';
+import cncVfxWebm from '../media/webm/cnc_vfx.webm';
+import cncVfxMp4 from '../media/mp4/cnc_vfx.mp4';
+import cubeVfxWebm from '../media/webm/cube_vfx.webm';
+import cubeVfxMp4 from '../media/mp4/cube_vfx.mp4';
+import threejsLogoUrl from '../media/webp/threejs_logo.webp';
 
 // Augment JSX to allow <model-viewer>
 declare global {
@@ -274,25 +275,24 @@ export default function ThreeDVfx() {
     {
       title: '車床銑刀',
       description: '使用 Blender 進行硬表面建模，還原複雜的螺旋排屑槽。\n材質採用 Procedural Nodes，捨棄傳統PBR貼圖，精細控製刀刃的各向異性與金屬顆粒質感。\n透過 Cycles 的物理光線追蹤，達成照片級的渲染成果。',
-      glbPath: cncModelUrl, // Use imported URL
-      mediaPath: cncGifUrl,
-      mediaType: 'image',
-      imagePath: 'https://placehold.co/1920x1080/111/fff?text=Rendered+Image',
+      glbPath: cncModelUrl,
+      mediaWebm: cncVfxWebm,
+      mediaMp4: cncVfxMp4,
+      mediaType: 'video' as const,
     },
     {
       title: '多功能充電器',
       description: '機器人造型充電器的3D模型，針對產品接縫等做精細導角處理。\n使用EEVEE渲染引擎，橙青色調打光特效提升科技感。',
-      glbPath: cubeModelUrl, // Use imported URL
-      mediaPath: cubeGifUrl,
-      mediaType: 'image',
-      imagePath: 'https://placehold.co/1920x1080/111/fff?text=Rendered+Image',
+      glbPath: cubeModelUrl,
+      mediaWebm: cubeVfxWebm,
+      mediaMp4: cubeVfxMp4,
+      mediaType: 'video' as const,
     },
     {
       title: "Domo's Portfolio 3D Web",
       description: '使用 Three.js、TypeScript 和 React框架打造的動態作品集頁面。\n以幾何邊界為視覺核心，將立方體轉化為乘載資訊的數位容器。',
       mediaPath: threejsLogoUrl,
-      mediaType: 'image',
-      imagePath: 'https://placehold.co/1920x1080/111/fff?text=Website+Screenshot',
+      mediaType: 'image' as const,
     }
   ];
 
@@ -425,15 +425,26 @@ export default function ThreeDVfx() {
                 <p>{projects[currentProjectIndex].description}</p>
               </div>
               <div className="divider"></div>
-              {projects[currentProjectIndex].mediaPath && (
-                <div className="project-video-container">
-                  {projects[currentProjectIndex].mediaType === 'video' ? (
-                    <video src={projects[currentProjectIndex].mediaPath} controls loop muted autoPlay playsInline poster="https://placehold.co/1920x1080/111/fff?text=Video+Poster" className="project-video"></video>
-                  ) : (
-                    <img src={projects[currentProjectIndex].mediaPath} alt={projects[currentProjectIndex].title} className="project-video" />
-                  )}
-                </div>
-              )}
+              {(() => {
+                const project = projects[currentProjectIndex];
+                if (project.mediaType === 'video' && 'mediaWebm' in project) {
+                  return (
+                    <div className="project-video-container">
+                      <video loop muted autoPlay playsInline className="project-video">
+                        <source src={project.mediaWebm} type="video/webm" />
+                        <source src={project.mediaMp4} type="video/mp4" />
+                      </video>
+                    </div>
+                  );
+                } else if ('mediaPath' in project && project.mediaPath) {
+                  return (
+                    <div className="project-video-container">
+                      <img src={project.mediaPath} alt={project.title} className="project-video" />
+                    </div>
+                  );
+                }
+                return null;
+              })()}
             </div>
           </motion.div>
         </AnimatePresence>

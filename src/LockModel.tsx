@@ -15,7 +15,7 @@ export default function LockModel({
   scale = [10, 10, 10],
   position = [0, -2, 0],
   rotation = [0, 1.58, 0]
-}: LockModelProps) {  const gltf = useGLTF('../glb_file/lock.glb');
+}: LockModelProps) {  const gltf = useGLTF('../media/glb/lock.glb');
 
   useEffect(() => {
     if (gltf.scene) {
@@ -40,4 +40,4 @@ export default function LockModel({
   );
 }
 
-useGLTF.preload('../glb_file/lock.glb');
+useGLTF.preload('../media/glb/lock.glb');
