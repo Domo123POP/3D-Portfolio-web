@@ -12,6 +12,34 @@
   font-family: 'FuturaCyrillicLight', Helvetica, Arial, sans-serif;
 }
 
+/* === 媒體保護樣式 === */
+/* 禁用圖片拖曳與選取 */
+img, video, canvas {
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  user-drag: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  pointer-events: auto;
+}
+
+/* 禁用影片下載按鈕（Chrome/Edge） */
+video::-internal-media-controls-download-button {
+  display: none !important;
+}
+
+video::-webkit-media-controls-enclosure {
+  overflow: hidden !important;
+}
+
+video::-webkit-media-controls-panel {
+  width: calc(100% + 30px) !important; /* 隱藏右側下載按鈕 */
+}
+
 html,
 body,
 #root {
@@ -160,14 +188,13 @@ body,
 .project-display {
   position: relative;
   width: 100%;
-  min-height: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column; /* Arrange GLB and info box vertically */
-  justify-content: center;
+  justify-content: flex-start; /* 從頂部開始 */
   align-items: center;
   color: white;
   padding-top: 80px;
-  padding-bottom: 80px; /* Space for pagination */
   pointer-events: none; /* Allow interaction with elements on Scene below */
 }
 
@@ -201,29 +228,28 @@ body,
 
 
 .project-info-box {
-
-  background: rgba(0, 0, 0, 0.6);
-
-  backdrop-filter: blur(5px);
-
-  padding: 20px;
-
-  border-radius: 10px;
-
-  max-width: 1000px; /* Wider for new layout */
-
+  /* 全寬透明背景條（類似頁首） */
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  padding: 20px 0;
   z-index: 5;
+  pointer-events: auto;
+  /* 內容置中容器 */
+  display: flex;
+  justify-content: center;
+}
 
-  border: 1px solid rgba(255, 255, 255, 0.1);
-
-  margin-top: 20px; /* Space between GLB and info box */
-
-  display: flex; /* Use flexbox for internal layout */
-
-  gap: 20px; /* Space between text and video/divider */
-
-  pointer-events: auto; /* Allow interaction with info box */
-
+.project-info-box-inner {
+  max-width: 1200px;
+  width: 100%;
+  padding: 0 2rem;
+  display: flex;
+  gap: 20px;
+  align-items: center;
 }
 
 
@@ -289,13 +315,10 @@ body,
 
 
 .divider {
-
   width: 1px;
-
+  align-self: stretch; /* 讓分隔線撐滿父容器高度 */
   background-color: rgba(255, 255, 255, 0.3);
-
   margin: 10px 0; /* Vertical margin for divider */
-
 }
 
 
@@ -370,8 +393,7 @@ body,
 
 /* Responsive adjustments for the new layout */
 @media (max-width: 1200px) {
-  .project-info-box {
-    max-width: 90%;
+  .project-info-box-inner {
     flex-direction: column; /* Stack text and video on smaller screens */
     gap: 10px;
   }
@@ -398,29 +420,89 @@ body,
   }
   .main-glb-container {
     padding: 10px;
-    width: 90%;
-    margin-top: 0;
+    width: 70%;
+    margin-top: 60px;
+    aspect-ratio: 1 / 1; /* 手機版改為 9:16 長條比例 */
+    max-height: calc(100vh - 200px); /* 限制最大高度，預留底部面板空間 */
   }
   .main-glb-viewer {
     max-height: none;
   }
-  .project-info-box {
-    max-width: 90%;
-    padding: 15px;
+
+  /* === 手機版滑動面板樣式 === */
+  .project-info-box.mobile-panel {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    max-height: 85vh; /* 最大高度 */
+    border-radius: 20px 20px 0 0;
+    padding: 0;
+    transform: translateY(calc(100% - 120px)); /* 預設只露出一部分 */
+    transition: transform 0.3s ease-out;
+    flex-direction: column;
+    overflow: hidden;
   }
-  .project-text-content {
-    text-align: left; /* 文字靠左 */
+
+  .project-info-box.mobile-panel.expanded {
+    transform: translateY(0); /* 展開時完全顯示 */
   }
-  .project-text-content h2 {
-    font-size: 2rem; /* 標題縮小 */
+
+  /* 拖曳把手區域 */
+  .panel-drag-handle {
+    width: 100%;
+    padding: 12px 0 8px 0;
+    display: flex;
+    justify-content: center;
+    cursor: grab;
+    touch-action: none;
   }
-  .project-text-content p {
-    font-size: 1rem; /* 內文縮小 */
-    line-height: 1.5; /* 調整行高 */
+
+  .panel-drag-handle:active {
+    cursor: grabbing;
   }
-  .divider {
-    display: none; /* 隱藏分隔線 */
+
+  /* iPhone 風格的拖曳指示器 */
+  .drag-indicator {
+    width: 36px;
+    height: 5px;
+    background-color: rgba(255, 255, 255, 0.5);
+    border-radius: 3px;
   }
+
+  .project-info-box.mobile-panel .project-info-box-inner {
+    flex-direction: column;
+    padding: 0 1.5rem 2rem 1.5rem;
+    overflow-y: auto;
+    max-height: calc(85vh - 30px);
+  }
+
+  .project-info-box.mobile-panel .project-text-content {
+    text-align: left;
+  }
+
+  .project-info-box.mobile-panel .project-text-content h2 {
+    font-size: 1.4rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .project-info-box.mobile-panel .project-text-content p {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: #ccc;
+  }
+
+  .project-info-box.mobile-panel .project-video-container {
+    width: 100%;
+    max-width: none;
+    margin-top: 1rem;
+  }
+
+  .project-info-box.mobile-panel .project-video {
+    width: 100%;
+    border-radius: 10px;
+  }
+
   .project-pagination {
     margin-top: 16px;
     margin-bottom: 4px;
@@ -436,11 +518,11 @@ body,
 }
 
 @media (max-width: 480px) {
-  .project-info-box h2 {
-    font-size: 1.5rem;
+  .project-text-content h2 {
+    font-size: 1.2rem;
   }
   .project-text-content p {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
   }
   .project-node {
     width: 8px;

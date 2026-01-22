@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as THREE from 'three';
+import { useNavigate } from 'react-router-dom';
 import Scene from './Scene';
 import './Private.css';
 
@@ -20,6 +21,42 @@ interface Work {
 }
 
 const CORRECT_PASSWORD = '1234';
+
+// 發光自轉空心方塊元件
+function GlowingCube() {
+  const meshRef = useRef<THREE.LineSegments>(null!);
+
+  useFrame((_, delta) => {
+    if (meshRef.current) {
+      // 只在 Y 軸水平自轉
+      meshRef.current.rotation.y += delta * 0.5;
+    }
+  });
+
+  const boxGeometry = new THREE.BoxGeometry(2, 2, 2);
+  const edgesGeometry = new THREE.EdgesGeometry(boxGeometry);
+
+  return (
+    <lineSegments ref={meshRef} geometry={edgesGeometry} rotation={[-0.3, 0, 0]}>
+      <lineBasicMaterial color="#ffffff" toneMapped={false} />
+    </lineSegments>
+  );
+}
+
+// 登入圖示的迷你 Canvas（使用正交攝影機，無透視效果）
+function LoginCubeCanvas() {
+  return (
+    <Canvas
+      orthographic
+      camera={{ position: [0, 0, 10], zoom: 40 }}
+      style={{ background: 'transparent' }}
+      gl={{ alpha: true, antialias: true }}
+    >
+      <ambientLight intensity={0.5} />
+      <GlowingCube />
+    </Canvas>
+  );
+}
 
 const privateWorks: Work[] = [
   {
@@ -86,7 +123,9 @@ const privateWorks: Work[] = [
 
 function PasswordModal({ onCorrectPassword }: { onCorrectPassword: () => void }) {
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,44 +137,113 @@ function PasswordModal({ onCorrectPassword }: { onCorrectPassword: () => void })
     }
   };
 
+  const goHome = () => {
+    navigate('/');
+    window.dispatchEvent(new Event('go-home'));
+  };
+
   return (
     <motion.div
       className="password-modal-overlay"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
+      transition={{ duration: 0.6, ease: 'easeOut' }}
     >
+      {/* 毛玻璃遮罩層 */}
       <motion.div
-        className={`password-modal-cube ${error ? 'shake' : ''}`}
-        initial={{ scale: 0, rotateY: 0 }}
-        animate={{ scale: 1, rotateY: 360 }}
-        transition={{ duration: 0.8, ease: 'easeOut' }}
+        className="frosted-overlay"
+        exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
+        transition={{ duration: 0.6 }}
+      ></motion.div>
+
+      {/* 登入內容 - 置中 */}
+      <motion.div
+        className={`login-content ${error ? 'shake' : ''}`}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -30, scale: 0.95 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
       >
-        <div className="cube-face cube-front">
-          <h2>Private Portfolio</h2>
-          <form onSubmit={handleSubmit}>
+        {/* 發光自轉方塊 */}
+        <div className="login-cube">
+          <LoginCubeCanvas />
+        </div>
+
+        {/* 標題 */}
+        <h2 className="login-title">Content Hidden</h2>
+
+        {/* 說明文字 */}
+        <p className="login-subtitle">Please enter access password</p>
+
+        {/* 密碼輸入表單 */}
+        <form onSubmit={handleSubmit} className="login-form">
+          <div className="password-input-wrapper">
             <input
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter Password"
+              placeholder="Enter password"
               className="password-input"
               autoFocus
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck="false"
+              data-form-type="other"
+              data-lpignore="true"
+              data-1p-ignore="true"
             />
-            <button type="submit" className="password-submit">
-              Enter
+            <button
+              type="button"
+              className="password-toggle"
+              onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? (
+                // 眼睛打開 (顯示密碼)
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              ) : (
+                // 眼睛關閉 (隱藏密碼)
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                  <line x1="1" y1="1" x2="23" y2="23" />
+                </svg>
+              )}
             </button>
-          </form>
+          </div>
+
           {error && <p className="error-message">Incorrect password</p>}
-        </div>
+
+          {/* Access Content 按鈕 */}
+          <button type="submit" className="access-button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="lock-icon">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 9.9-1" />
+            </svg>
+            Access Content
+          </button>
+        </form>
+
+        {/* 返回首頁 */}
+        <button className="back-home" onClick={goHome}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+          Back to Home
+        </button>
       </motion.div>
     </motion.div>
   );
 }
 
-function Card3D({ work, cardIndex }: {
+function Card3D({ work, cardIndex, isMobile }: {
   work: Work;
   cardIndex: number;
+  isMobile: boolean;
 }) {
   return (
     <mesh position={[cardIndex * 2.5, 0, 0]}>
@@ -143,12 +251,14 @@ function Card3D({ work, cardIndex }: {
       <meshBasicMaterial transparent opacity={0} />
       <Html
         transform
-        distanceFactor={1.2}
+        distanceFactor={isMobile ? 0.8 : 1.2}
+        center
+        zIndexRange={[50, 0]}
         style={{
-          width: '90vw',
-          maxWidth: '800px',
-          height: 'calc(100vh - 120px)',
-          maxHeight: '1130px',
+          width: isMobile ? '95vw' : '90vw',
+          maxWidth: isMobile ? '100%' : '800px',
+          height: 'calc(100vh - 80px)',
+          maxHeight: '1200px',
           pointerEvents: 'auto',
         }}
       >
@@ -188,7 +298,7 @@ function CameraController({ currentIndex }: { currentIndex: number }) {
   return null;
 }
 
-function CardsScene({ currentIndex }: { currentIndex: number }) {
+function CardsScene({ currentIndex, isMobile }: { currentIndex: number; isMobile: boolean }) {
   return (
     <>
       <CameraController currentIndex={currentIndex} />
@@ -199,6 +309,7 @@ function CardsScene({ currentIndex }: { currentIndex: number }) {
           key={work.id}
           work={work}
           cardIndex={index}
+          isMobile={isMobile}
         />
       ))}
     </>
@@ -207,10 +318,31 @@ function CardsScene({ currentIndex }: { currentIndex: number }) {
 
 export default function Private() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false); // 過渡動畫狀態
+  const [showContent, setShowContent] = useState(false); // 顯示卡片內容
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  // 監聽螢幕尺寸變化
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handlePasswordCorrect = () => {
-    setIsAuthenticated(true);
+    // 開始過渡動畫
+    setIsTransitioning(true);
+
+    // 延遲後切換到已認證狀態（讓登入畫面先淡出）
+    setTimeout(() => {
+      setIsAuthenticated(true);
+    }, 600);
+
+    // 再延遲後顯示卡片內容（等方塊聚集動畫完成）
+    setTimeout(() => {
+      setShowContent(true);
+    }, 2000);
   };
 
   const handleNext = () => {
@@ -243,7 +375,12 @@ export default function Private() {
 
   return (
     <>
-      <Scene initialPortfolioMode={true} enableHomeUI={false} />
+      {/* 登入畫面時使用首頁的飄動方塊效果，認證後使用作品集模式 */}
+      <Scene
+        initialPortfolioMode={false}
+        enableHomeUI={false}
+        triggerPortfolioAnimation={isTransitioning}
+      />
 
       <AnimatePresence>
         {!isAuthenticated && (
@@ -252,12 +389,25 @@ export default function Private() {
       </AnimatePresence>
 
       {isAuthenticated && (
-        <div className="private-3d-container">
-          <Canvas camera={{ position: [0, 0, 4], fov: 50 }}>
-            <CardsScene currentIndex={currentIndex} />
-          </Canvas>
+        <>
+          <motion.div
+            className="private-3d-container"
+            initial={{ x: '100%' }}
+            animate={{ x: showContent ? 0 : '100%' }}
+            transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+          >
+            <Canvas camera={{ position: [0, 0, isMobile ? 2.5 : 4], fov: isMobile ? 40 : 50 }}>
+              <CardsScene currentIndex={currentIndex} isMobile={isMobile} />
+            </Canvas>
+          </motion.div>
 
-          <div className="navigation-arrows">
+          {/* Navigation 和 Pagination 移到 Canvas 外部，避免被 Html 元件覆蓋 */}
+          <motion.div
+            className="navigation-arrows"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: showContent ? 1 : 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
             <button
               className="arrow-btn arrow-left"
               onClick={handlePrev}
@@ -272,9 +422,14 @@ export default function Private() {
             >
               ›
             </button>
-          </div>
+          </motion.div>
 
-          <div className="pagination-dots">
+          <motion.div
+            className="pagination-dots"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: showContent ? 1 : 0, y: showContent ? 0 : 20 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
+          >
             {privateWorks.map((_, index) => (
               <div
                 key={index}
@@ -282,8 +437,8 @@ export default function Private() {
                 onClick={() => setCurrentIndex(index)}
               />
             ))}
-          </div>
-        </div>
+          </motion.div>
+        </>
       )}
     </>
   );

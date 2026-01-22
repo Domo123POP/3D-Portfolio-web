@@ -209,7 +209,7 @@ const VoxelSnake = () => {
   );
 };
 
-function Cubes({ count = 4000, stage, focusTarget, portfolioMode, onSpecialCubeClick, initialPortfolioMode }: any) { // 增加數量以填滿空間
+function Cubes({ count = 4000, stage, focusTarget, portfolioMode, onSpecialCubeClick, skipAnimation }: any) { // 增加數量以填滿空間
   const { camera } = useThree(); // 取得攝影機以計算距離
   const mesh = useRef<THREE.InstancedMesh>(null!);
   const dummy = useMemo(() => new THREE.Object3D(), []);
@@ -436,7 +436,7 @@ function Cubes({ count = 4000, stage, focusTarget, portfolioMode, onSpecialCubeC
         // 所有方塊飛向螢幕牆的目標位置
         const target = screenData[i] || screenData[0];
         
-        if (initialPortfolioMode) {
+        if (skipAnimation) {
            // 如果是初始進入 Profile 頁面，直接定位，不播放動畫
            d.currentPos.copy(target);
         } else {
@@ -883,17 +883,28 @@ function CameraRig({ stage, focusTarget, portfolioMode }: any) {
   return null;
 }
 
-export default function Scene({ initialPortfolioMode = false, enableHomeUI = true }: any) {
+export default function Scene({ initialPortfolioMode = false, enableHomeUI = true, triggerPortfolioAnimation = false }: any) {
   const navigate = useNavigate();
   const [stage, setStage] = useState(0); // 0: 首頁, 1-4: 方塊特寫
   const focusTarget = useRef(new THREE.Vector3(0, 0, 0)); // 儲存目標方塊的位置
   const [portfolioMode, setPortfolioMode] = useState(initialPortfolioMode); // 支援初始模式
+  // 用於區分「是否跳過動畫」：只有 initialPortfolioMode 為 true 時才跳過
+  const [skipAnimation, setSkipAnimation] = useState(initialPortfolioMode);
+
+  // 監聽外部觸發的作品集動畫 (例如 Private 頁面密碼正確後)
+  useEffect(() => {
+    if (triggerPortfolioAnimation && !portfolioMode) {
+      setSkipAnimation(false); // 確保播放動畫
+      setPortfolioMode(true);
+    }
+  }, [triggerPortfolioAnimation, portfolioMode]);
 
   // 監聽重置事件 (從 Navbar 觸發)
   useEffect(() => {
     const handleReset = () => {
       setStage(0);
       setPortfolioMode(false);
+      setSkipAnimation(false);
     };
     window.addEventListener('go-home', handleReset);
     return () => window.removeEventListener('go-home', handleReset);
@@ -979,7 +990,7 @@ export default function Scene({ initialPortfolioMode = false, enableHomeUI = tru
           <ambientLight intensity={0.5} color="#333333" /> {/* 中性色調環境光 */}
           <directionalLight position={[10, 10, 5]} intensity={1} color="#ffffff" /> {/* 白光主光 */}
           
-          <Cubes stage={stage} focusTarget={focusTarget} portfolioMode={portfolioMode} onSpecialCubeClick={handleSpecialCubeClick} initialPortfolioMode={initialPortfolioMode} />
+          <Cubes stage={stage} focusTarget={focusTarget} portfolioMode={portfolioMode} onSpecialCubeClick={handleSpecialCubeClick} skipAnimation={skipAnimation} />
           <CameraRig stage={stage} focusTarget={focusTarget} portfolioMode={portfolioMode} />
 
           {/* 後製特效：膠片顆粒濾鏡 */}

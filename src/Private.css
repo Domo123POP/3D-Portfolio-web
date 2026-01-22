@@ -5,26 +5,41 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.9);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
 }
 
-/* Password Modal Cube */
-.password-modal-cube {
-  background: linear-gradient(135deg, rgba(30, 30, 30, 0.95), rgba(50, 50, 50, 0.95));
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 15px;
-  padding: 50px 60px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8),
-              0 0 30px rgba(255, 255, 255, 0.1);
-  transform-style: preserve-3d;
-  perspective: 1000px;
+/* 毛玻璃半透明遮罩 */
+.frosted-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  z-index: 0;
+  will-change: opacity, backdrop-filter; /* 優化動畫效能 */
 }
 
-.password-modal-cube.shake {
+/* 登入內容容器 - 無背景框 */
+.login-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 40px;
+  max-width: 400px;
+  width: 90%;
+  will-change: transform, opacity; /* 優化動畫效能 */
+}
+
+.login-content.shake {
   animation: shake 0.5s;
 }
 
@@ -34,63 +49,156 @@
   75% { transform: translateX(10px); }
 }
 
-.cube-face {
-  text-align: center;
+/* 登入發光方塊 */
+.login-cube {
+  width: 150px;
+  height: 150px;
+  margin-bottom: 24px;
 }
 
-.cube-front h2 {
+.login-cube canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* 標題 */
+.login-title {
   color: white;
-  font-size: 2rem;
-  margin-bottom: 30px;
-  letter-spacing: 2px;
+  font-size: 1.8rem;
+  font-weight: bold;
+  margin: 0 0 8px 0;
+  letter-spacing: 1px;
+}
+
+/* 說明文字 */
+.login-subtitle {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+  margin: 0 0 28px 0;
+}
+
+/* 表單 */
+.login-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+/* 密碼輸入框容器 */
+.password-input-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
 }
 
 .password-input {
-  width: 300px;
-  padding: 15px;
+  width: 100%;
+  padding: 14px 50px 14px 16px;
   font-size: 1rem;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
   color: white;
   outline: none;
-  margin-bottom: 20px;
   transition: all 0.3s ease;
 }
 
 .password-input::placeholder {
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .password-input:focus {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.5);
 }
 
-.password-submit {
-  width: 300px;
-  padding: 15px;
+/* 眼睛按鈕 */
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.password-toggle svg {
+  width: 22px;
+  height: 22px;
+  color: rgba(255, 255, 255, 0.5);
+  transition: color 0.2s ease;
+}
+
+.password-toggle:hover svg {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* 錯誤訊息 */
+.error-message {
+  color: #ff6b6b;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+/* Access Content 按鈕 */
+.access-button {
+  width: 100%;
+  max-width: 320px;
+  padding: 14px 20px;
   font-size: 1rem;
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 8px;
   color: white;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-weight: bold;
-  letter-spacing: 1px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
 }
 
-.password-submit:hover {
-  background: rgba(255, 255, 255, 0.3);
+.access-button:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
   transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(255, 255, 255, 0.2);
 }
 
-.error-message {
-  color: #ff6b6b;
-  margin-top: 15px;
+.access-button .lock-icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* 返回首頁連結 */
+.back-home {
+  margin-top: 32px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
   font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.2s ease;
+  padding: 8px;
+}
+
+.back-home:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.back-home svg {
+  width: 18px;
+  height: 18px;
 }
 
 /* Private 3D Container */
@@ -102,6 +210,7 @@
   height: 100%;
   z-index: 1;
   overflow: hidden;
+  will-change: transform; /* 優化動畫效能 */
 }
 
 .private-3d-container > canvas {
@@ -201,7 +310,7 @@
 
 /* Navigation Arrows */
 .navigation-arrows {
-  position: absolute;
+  position: fixed;
   top: 50%;
   left: 0;
   right: 0;
@@ -210,7 +319,7 @@
   justify-content: space-between;
   padding: 0 20px;
   pointer-events: none;
-  z-index: 200;
+  z-index: 9999;
 }
 
 .arrow-btn {
@@ -241,14 +350,15 @@
 
 /* Pagination Dots */
 .pagination-dots {
-  position: absolute;
-  bottom: 40px;
-  left: 50%;
-  transform: translateX(-50%);
+  position: fixed;
+  bottom: 60px;
+  left: 0;
+  right: 0;
   display: flex;
-  gap: 0;
+  justify-content: center;
   align-items: center;
-  z-index: 300;
+  z-index: 9999;
+  pointer-events: none;
 }
 
 .pagination-dots .nav-node {
@@ -259,6 +369,7 @@
   cursor: pointer;
   transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   box-shadow: 0 0 0 rgba(255, 255, 255, 0);
+  pointer-events: auto;
 }
 
 .pagination-dots .nav-node.active {
@@ -274,6 +385,20 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
+  /* 手機版 3D 容器置中 */
+  .private-3d-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .private-3d-container > canvas {
+    position: relative;
+    width: 100% !important;
+    height: 100% !important;
+  }
+
   .card-3d-content {
     padding: 30px;
   }
@@ -300,7 +425,8 @@
   }
 
   .pagination-dots {
-    bottom: 20px;
+    bottom: 25px;
+    z-index: 9999;
   }
 
   .pagination-dots .nav-node {
@@ -313,13 +439,26 @@
     height: 25px;
   }
 
-  .password-modal-cube {
-    padding: 40px 30px;
+  /* 登入介面響應式 */
+  .login-content {
+    padding: 30px 20px;
   }
 
-  .password-input,
-  .password-submit {
-    width: 250px;
+  .login-cube {
+    width: 130px;
+    height: 130px;
+  }
+
+  .login-title {
+    font-size: 1.5rem;
+  }
+
+  .password-input-wrapper {
+    max-width: 280px;
+  }
+
+  .access-button {
+    max-width: 280px;
   }
 }
 
@@ -352,16 +491,31 @@
     gap: 5px;
   }
 
-  .password-modal-cube {
-    padding: 30px 20px;
+  /* 登入介面響應式 */
+  .login-cube {
+    width: 130px;
+    height: 130px;
+    margin-bottom: 20px;
   }
 
-  .cube-front h2 {
-    font-size: 1.5rem;
+  .login-title {
+    font-size: 1.3rem;
   }
 
-  .password-input,
-  .password-submit {
-    width: 220px;
+  .login-subtitle {
+    font-size: 0.85rem;
+  }
+
+  .password-input-wrapper {
+    max-width: 260px;
+  }
+
+  .access-button {
+    max-width: 260px;
+    font-size: 0.95rem;
+  }
+
+  .back-home {
+    font-size: 0.85rem;
   }
 }

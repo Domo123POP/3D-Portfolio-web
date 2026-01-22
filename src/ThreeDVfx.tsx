@@ -271,6 +271,97 @@ export default function ThreeDVfx() {
   const [currentProjectIndex, setCurrentProjectIndex] = useState(0);
   const modelViewerRef = useRef<HTMLElement>(null);
 
+  // 手機版滑動面板狀態
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [isPanelExpanded, setIsPanelExpanded] = useState(false);
+  const [dragProgress, setDragProgress] = useState(0); // 0 = 收合, 1 = 展開
+  const [isDragging, setIsDragging] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const dragStartY = useRef(0);
+  const startProgress = useRef(0);
+
+  // 面板可滑動的最大距離（從收合到展開）
+  const maxDragDistance = useRef(300);
+
+  // 監聽螢幕尺寸變化
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // 切換專案時重置面板狀態
+  useEffect(() => {
+    setIsPanelExpanded(false);
+    setDragProgress(0);
+  }, [currentProjectIndex]);
+
+  // 同步 isPanelExpanded 與 dragProgress
+  useEffect(() => {
+    if (!isDragging) {
+      setDragProgress(isPanelExpanded ? 1 : 0);
+    }
+  }, [isPanelExpanded, isDragging]);
+
+  // 手機版拖曳處理
+  const handleDragStart = (e: React.TouchEvent | React.MouseEvent) => {
+    if (!isMobile) return;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    dragStartY.current = clientY;
+    startProgress.current = dragProgress;
+    setIsDragging(true);
+
+    // 計算面板實際可滑動距離
+    if (panelRef.current) {
+      const panelHeight = panelRef.current.offsetHeight;
+      const collapsedVisible = 120; // 收合時露出的高度
+      maxDragDistance.current = panelHeight - collapsedVisible;
+    }
+  };
+
+  const handleDragMove = (e: React.TouchEvent | React.MouseEvent) => {
+    if (!isMobile || !isDragging) return;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    const deltaY = clientY - dragStartY.current;
+
+    // 計算新的進度值（往上拖是負的 deltaY，所以要反轉）
+    const progressChange = -deltaY / maxDragDistance.current;
+    const newProgress = Math.max(0, Math.min(1, startProgress.current + progressChange));
+
+    setDragProgress(newProgress);
+  };
+
+  const handleDragEnd = (e: React.TouchEvent | React.MouseEvent) => {
+    if (!isMobile || !isDragging) return;
+    setIsDragging(false);
+
+    const clientY = 'changedTouches' in e ? e.changedTouches[0].clientY : e.clientY;
+    const deltaY = clientY - dragStartY.current;
+
+    // 快速點擊（幾乎沒有移動）-> 切換狀態
+    if (Math.abs(deltaY) < 10) {
+      setIsPanelExpanded(!isPanelExpanded);
+      return;
+    }
+
+    // 根據當前進度決定最終狀態
+    // 如果拖動超過 40% 就切換到該狀態
+    if (dragProgress > 0.4) {
+      setIsPanelExpanded(true);
+    } else {
+      setIsPanelExpanded(false);
+    }
+  };
+
+  const togglePanel = () => {
+    if (isMobile) {
+      setIsPanelExpanded(!isPanelExpanded);
+    }
+  };
+
+  // 節點線和箭頭的透明度（面板展開時淡出）
+  const controlsOpacity = 1 - dragProgress;
+
   const projects = [
     {
       title: '車床銑刀',
@@ -345,8 +436,8 @@ export default function ThreeDVfx() {
       {projects[currentProjectIndex].title !== "Domo's Portfolio 3D Web" &&
         <Scene initialPortfolioMode={true} enableHomeUI={false} />
       }
-      <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 1, paddingTop: '0', paddingBottom: '50px', overflowY: 'auto', overflowX: 'hidden' }}>
-        <div className="navigation-container">
+      <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 1, overflow: 'hidden' }}>
+        <div className="navigation-container" style={{ opacity: isMobile ? controlsOpacity : 1, transition: isDragging ? 'none' : 'opacity 0.3s ease-out' }}>
           <div className="navigation-bounds">
             {currentProjectIndex > 0 && (
               <div className="nav-left">
@@ -411,7 +502,7 @@ export default function ThreeDVfx() {
               // 保持空間佔位，避免 info-box 往上跳
               <div className="main-glb-container" style={{ pointerEvents: 'none' }}></div>
             )}
-             <div className="project-pagination">
+             <div className="project-pagination" style={{ opacity: isMobile ? controlsOpacity : 1, transition: isDragging ? 'none' : 'opacity 0.3s ease-out' }}>
               {projects.map((_, index) => (
                 <>
                   <span key={`node-${index}`} className={index === currentProjectIndex ? 'active project-node' : 'project-node'} onClick={() => setCurrentProjectIndex(index)}></span>
@@ -419,35 +510,54 @@ export default function ThreeDVfx() {
                 </>
               ))}
             </div>
-            <div className="project-info-box">
-              <div className="project-text-content">
-                <h2>{projects[currentProjectIndex].title}</h2>
-                <p>{projects[currentProjectIndex].description}</p>
-              </div>
-              <div className="divider"></div>
-              {(() => {
-                const project = projects[currentProjectIndex];
-                if (project.mediaType === 'video' && 'mediaWebm' in project) {
-                  return (
-                    <div className="project-video-container">
-                      <video loop muted autoPlay playsInline className="project-video">
-                        <source src={project.mediaWebm} type="video/webm" />
-                        <source src={project.mediaMp4} type="video/mp4" />
-                      </video>
-                    </div>
-                  );
-                } else if ('mediaPath' in project && project.mediaPath) {
-                  return (
-                    <div className="project-video-container">
-                      <img src={project.mediaPath} alt={project.title} className="project-video" />
-                    </div>
-                  );
-                }
-                return null;
-              })()}
-            </div>
           </motion.div>
         </AnimatePresence>
+        {/* 底部資訊列 - 手機版可滑動展開 */}
+        <div
+          ref={panelRef}
+          className={`project-info-box ${isMobile ? 'mobile-panel' : ''} ${isPanelExpanded && !isDragging ? 'expanded' : ''}`}
+          style={isMobile && isDragging ? {
+            transform: `translateY(calc(${(1 - dragProgress) * 100}% - 120px))`,
+            transition: 'none'
+          } : undefined}
+          onTouchStart={handleDragStart}
+          onTouchMove={handleDragMove}
+          onTouchEnd={handleDragEnd}
+        >
+          {/* 手機版拖曳指示器 */}
+          {isMobile && (
+            <div className="panel-drag-handle" onClick={togglePanel}>
+              <div className="drag-indicator"></div>
+            </div>
+          )}
+          <div className="project-info-box-inner">
+            <div className="project-text-content">
+              <h2>{projects[currentProjectIndex].title}</h2>
+              <p>{projects[currentProjectIndex].description}</p>
+            </div>
+            {!isMobile && <div className="divider"></div>}
+            {(() => {
+              const project = projects[currentProjectIndex];
+              if (project.mediaType === 'video' && 'mediaWebm' in project) {
+                return (
+                  <div className="project-video-container">
+                    <video key={currentProjectIndex} loop muted autoPlay playsInline className="project-video">
+                      <source src={project.mediaWebm} type="video/webm" />
+                      <source src={project.mediaMp4} type="video/mp4" />
+                    </video>
+                  </div>
+                );
+              } else if ('mediaPath' in project && project.mediaPath) {
+                return (
+                  <div className="project-video-container">
+                    <img key={currentProjectIndex} src={project.mediaPath} alt={project.title} className="project-video" />
+                  </div>
+                );
+              }
+              return null;
+            })()}
+          </div>
+        </div>
       </div>
     </>
   );

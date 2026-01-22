@@ -11,7 +11,7 @@ const alphaMapResolution = isMobileDevice ? 150 : 300; // Lower resolution for m
 const initialViewOpacity = 0.5; // Opacity for all frames in the initial overview
 
 // 手機版專屬：特寫某個 frame 時，其他 frame 的暗度（數值越小越暗，範圍 0.0-1.0）
-const mobileUnfocusedFrameOpacity = 0.2; // 預設 0.04，可調整為 0.1、0.2 等讓其他 frame 更明顯
+const mobileUnfocusedFrameOpacity = 0.1; // 預設 0.04，可調整為 0.1、0.2 等讓其他 frame 更明顯
 
 // --- Alpha Map Caching ---
 const alphaMapCache = new Map<string, THREE.CanvasTexture>();
@@ -153,33 +153,33 @@ const framesData: FrameData[] = [
   },
   {
     id: 5,
-    position: [5, -0.6, -3],
-    width: 1.6, height: 0.9,
-    scale: 2,
+    position: [5.5, 0, -3],
+   width: 2.75, height: 1.0,
+    scale: 1.4,
     focusDistance: 2.8,
+    textureUrl: '/media/webp/ar-1.webp',
+    highResTextureUrl: '/media/webp/ar-1.webp',
+    title: '《穿越真實的邊界》 | On the Edge of Reality ',
+    description: '3D建模 / AR技術應用 / APP開發\n\n為無獨有偶劇團與德國圖賓根形體劇團於台中國家歌劇院之跨國製作打造互動體驗。\n負責懸絲偶之 3D 建模與 AR 應用程式開發，將虛擬技術注入傳統偶戲，\n在國家級舞台上實現虛實交錯的當代劇場視覺。',
+    // 手機版設定
+    mobilePosition: [0.25, 2.5, -2],
+    mobileScale: 0.75,
+    mobileFocusDistance: 2.8,
+  },
+  {
+    id: 6,
+    position: [-3, 4, -4],
+    width: 1.6, height: 0.9,
+    scale: 2.5,
+    focusDistance: 4.3,
     textureUrl: '/media/webp/duduba-1.webp',
     highResTextureUrl: '/media/webm/duduba.webm',
     title: 'DUDUBAO：磁力片教具套組',
     description: '動態攝影 / 後期剪輯\n\n負責嘖嘖募資影像製作，具備兒童實場拍攝經驗，能有效捕捉不受控現場的自然瞬間。\n專案中著重產品色彩還原的準確性，並結合動態字卡與特效設計，\n將繁複的數理教具 logique 視覺化，呈現具備專業度與功能說服力的影像內容。',
     videoUrl: 'https://www.youtube.com/watch?v=MarAh60dR_I',
     // 手機版設定
-    mobilePosition: [0.3, 3.0, -3],
-    mobileScale: 1.2,
-    mobileFocusDistance: 2.8,
-  },
-  {
-    id: 6,
-    position: [-3, 4, -4],
-    width: 3.2, height: 1.8,
-    scale: 1.3,
-    focusDistance: 4.3,
-    textureUrl: '/media/webp/ar-1.webp',
-    highResTextureUrl: '/media/webp/ar-1.webp',
-    title: '《穿越真實的邊界》 | On the Edge of Reality ',
-    description: '3D建模 / AR技術應用 / APP開發\n\n為無獨有偶劇團與德國圖賓根形體劇團於台中國家歌劇院之跨國製作打造互動體驗。\n負責懸絲偶之 3D 建模與 AR 應用程式開發，將虛擬技術注入傳統偶戲，\n在國家級舞台上實現虛實交錯的當代劇場視覺。',
-    // 手機版設定
-    mobilePosition: [1.45, -1.5, -2.7],
-    mobileScale: 0.7,
+    mobilePosition: [1.85, -2.1, -5.7],
+    mobileScale: 1.8,
     mobileFocusDistance: 4.3,
   },
   {
@@ -193,7 +193,7 @@ const framesData: FrameData[] = [
     title: 'Graphic Design | Skart Skate Brand',
     description: '圖像設計 / 印刷監修 / 熱轉印實作\n\n為 Skart 滑板品牌設計系列服飾圖像。經由多方廠商諮詢與打樣測試，\n最終採用熱壓工藝自行印製，以掌握圖像在織品上的細節與色彩表現，\n實現從概念開發到成品製作的完整流程，確保設計調性精準轉化為實體。',
     // 手機版設定
-    mobilePosition: [-1.15, 0.65, 0.1],
+    mobilePosition: [-1.75, 1.4, -2.1],
     mobileScale: 1.0,
     mobileFocusDistance: 2.8,
   },
@@ -332,13 +332,13 @@ const subFramesData: SubFrameData[] = [
   },
   {
     id: 104,
-    parentFrameId: 5,
+    parentFrameId: 6,
     type: 'text' as const,
     content: '- Click to view -',
-    position: [0.0, -1, 0.1] as [number, number, number],
+    position: [0.0, -1.25, 0.1] as [number, number, number],
     width: 0.07,
     // 手機版設定
-    mobilePosition: [0.0, -0.6, 0.1] as [number, number, number],
+    mobilePosition: [0.0, -0.8, 0.4] as [number, number, number],
   },
   {
     id: 105,
