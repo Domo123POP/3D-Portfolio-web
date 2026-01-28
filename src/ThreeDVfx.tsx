@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import Scene from './Scene';
-import { useState, useEffect, useRef, useCallback, Suspense, useMemo } from 'react';
+import { useState, useEffect, useRef, Suspense, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { useGLTF, OrbitControls, useAnimations } from '@react-three/drei';
 import * as THREE from 'three';
@@ -91,7 +91,7 @@ function InvisibleModel({ url }: { url: string }) {
     const clonedScene = scene.clone();
     clonedScene.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
-        child.material = new THREE.MeshBasicMaterial({
+        (child as THREE.Mesh).material = new THREE.MeshBasicMaterial({
           transparent: true,
           opacity: 0,
           depthWrite: false
@@ -672,28 +672,6 @@ export default function ThreeDVfx() {
     setCurrentProjectIndex((prev) => Math.max(prev - 1, 0));
   };
 
-  const handleModelLoad = useCallback(() => {
-    if (modelViewerRef.current) {
-      const model = (modelViewerRef.current as any).model;
-      modelViewerRef.current.style.transform = '';
-      if (model) {
-        model.rotation.y = 0;
-        model.traverse((node: any) => {
-          if (node.isMesh && node.userData.originalMaterial) {
-            node.material = node.userData.originalMaterial;
-            node.visible = node.userData.originalVisible;
-            if (node.userData.wireframeObject && node.parent) {
-              node.parent.remove(node.userData.wireframeObject);
-            }
-            delete node.userData.wireframeObject;
-            delete node.userData.originalMaterial;
-            delete node.userData.originalVisible;
-          }
-        });
-      }
-    }
-  }, []);
-
   useEffect(() => {
     if (projects[currentProjectIndex].title === '車床銑刀' || !projects[currentProjectIndex].glbPath) return;
     if (modelViewerRef.current) {
@@ -704,9 +682,6 @@ export default function ThreeDVfx() {
       }
     }
   }, [currentProjectIndex, projects]);
-
-  const containerVariants = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { delay: 0.5, staggerChildren: 0.3 } } };
-  const itemVariants = { hidden: { opacity: 0, y: 50 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 
   // 根據當前專案決定要渲染哪個背景 3D 模型
   const renderBackgroundModel = () => {

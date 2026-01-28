@@ -9,15 +9,8 @@ import LockModel from './LockModel';
 // 檢測是否為觸控設備（包含偽裝成 Mac 的 iPad）
 const isTouchDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
   (navigator.userAgent.includes('Mac') && 'ontouchend' in document);
-// 檢測是否為平板設備（iPad）- 需排除 iPhone（iPhone UA 也包含 "Mac OS X"）
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const _isTabletDevice = /iPad/i.test(navigator.userAgent) ||
-  (navigator.userAgent.includes('Mac') && 'ontouchend' in document && !/iPhone/i.test(navigator.userAgent));
 // 檢測是否為直向（高度 > 寬度）
 const isPortrait = window.innerHeight > window.innerWidth;
-// 使用手機版排版：觸控設備 + 直向（手機/平板橫放都用桌面版）
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const _isMobileDevice = isTouchDevice && isPortrait;
 
 // 監聽螢幕旋轉，重新載入頁面以更新排版（觸控設備都需要）
 if (isTouchDevice) {
@@ -31,9 +24,9 @@ if (isTouchDevice) {
 }
 
 const AnimatedText = ({ visible, ...props }: any) => {
-  const textRef = useRef<any>();
+  const textRef = useRef<any>(null);
 
-  useFrame((state, delta) => {
+  useFrame((_, delta) => {
     if (textRef.current) {
       const targetOpacity = visible ? 1 : 0;
       // 使用 lerp 平滑地改變透明度，達成淡入效果
@@ -139,7 +132,7 @@ const VoxelSnake = () => {
   const progress = useRef(0);
   const lastDir = useRef(new THREE.Vector3(0, 0, -1)); // 初始移動方向 (配合初始位置)
 
-  useFrame((state, delta) => {
+  useFrame((_, delta) => {
     const speed = 5.0 * delta; // 移動速度
     progress.current += speed;
 
@@ -833,10 +826,9 @@ function CameraRig({ stage, focusTarget, portfolioMode }: any) {
       const radius = 120;
       
       // 計算目標位置
+      // Y 軸相位調整 (Math.PI * 1.5 讓起始值為 -1)，讓鏡頭從下方仰視 (-30)
       const targetPos = new THREE.Vector3(
         Math.sin(t) * radius,
-        Math.sin(t * 0.5) * 20,
-        // 調整 Y 軸相位 (Math.PI * 1.5 讓起始值為 -1)，讓鏡頭從下方仰視 (-30)
         Math.sin(t * 0.5 + Math.PI * 1.5) * 30,
         Math.cos(t) * radius
       );
