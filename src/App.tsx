@@ -30,8 +30,11 @@ function App() {
     return () => document.removeEventListener('contextmenu', handleContextMenu);
   }, []);
 
+  // 取得 base URL 用於 Router basename
+  const basename = import.meta.env.BASE_URL.replace(/\/$/, '') || '';
+
   return (
-    <Router>
+    <Router basename={basename}>
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
