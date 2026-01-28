@@ -33,7 +33,7 @@ jobs:
         run: npm ci
 
       - name: Build
-        run: npm run build -- --base=/3D-Portfolio-web/
+        run: npm run build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

@@ -8,7 +8,7 @@ export default defineConfig(() => ({
   // 本地開發: base = '/'
   // GitHub Pages: base = '/your-repo-name/'
   // 可透過環境變數 VITE_BASE_URL 覆蓋，或在 build 時使用 --base 參數
-  base: process.env.VITE_BASE_URL || '/',
+  base: '/',
   assetsInclude: ['**/*.glb', '**/*.gltf', '**/*.mp4'], // Tell Vite to treat .glb and .gltf files as assets
   build: {
     // 確保資源路徑正確
