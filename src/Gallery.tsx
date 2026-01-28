@@ -4,9 +4,30 @@ import { Plane, useTexture, useVideoTexture, Text, useGLTF } from '@react-three/
 import * as THREE from 'three';
 import { EffectComposer, Noise, Bloom, Vignette } from '@react-three/postprocessing';
 import './Gallery.css';
+import { getAssetPath } from './utils/paths';
 
 // --- ADJUSTABLE CONFIGURATION AREA ---
-const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+// 檢測是否為觸控設備（包含偽裝成 Mac 的 iPad）
+const isTouchDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+  (navigator.userAgent.includes('Mac') && 'ontouchend' in document);
+// 檢測是否為平板設備（iPad）- 需排除 iPhone（iPhone UA 也包含 "Mac OS X"）
+const isTabletDevice = /iPad/i.test(navigator.userAgent) ||
+  (navigator.userAgent.includes('Mac') && 'ontouchend' in document && !/iPhone/i.test(navigator.userAgent));
+// 檢測是否為直向（高度 > 寬度）
+const isPortrait = window.innerHeight > window.innerWidth;
+// 使用手機版排版：觸控設備 + 直向（手機/平板橫放都用桌面版）
+const isMobileDevice = isTouchDevice && isPortrait;
+
+// 監聽螢幕旋轉，重新載入頁面以更新排版（觸控設備都需要）
+if (isTouchDevice) {
+  let lastOrientation = isPortrait;
+  window.addEventListener('resize', () => {
+    const currentOrientation = window.innerHeight > window.innerWidth;
+    if (currentOrientation !== lastOrientation) {
+      window.location.reload();
+    }
+  });
+}
 const alphaMapResolution = isMobileDevice ? 150 : 300; // Lower resolution for mobile
 const initialViewOpacity = 0.5; // Opacity for all frames in the initial overview
 
@@ -233,7 +254,7 @@ const framesData: FrameData[] = [
 interface SubFrameData {
   id: number;
   parentFrameId: number;
-  type: 'image' | 'text' | 'color-palette';
+  type: 'image' | 'text' | 'color-palette' | 'image-sequence';
   content: any;
   position: [number, number, number];
   width?: number;
@@ -242,6 +263,9 @@ interface SubFrameData {
   // 手機版專屬設定
   mobilePosition?: [number, number, number];
   mobileScale?: number;
+  // 圖片序列專用
+  frameCount?: number;  // 總幀數
+  fps?: number;         // 播放速度
 }
 
 const subFramesData: SubFrameData[] = [
@@ -537,6 +561,47 @@ const subFramesData: SubFrameData[] = [
     // 手機版設定
     mobilePosition: [-0.955, 0.7, -0.7] as [number, number, number],
     mobileScale: 0.7,
+  },
+  {
+    id: 214,
+    parentFrameId: 5,
+    type: 'image' as const,
+    content: '/media/webp/fish.webp',
+    position: [1.5, -0.65, 0.5] as [number, number, number],
+    width: 1.6,
+    height: 0.9,
+    scale: 2.0,
+    // 手機版設定
+    mobilePosition: [0.4, -0.35, 0.5] as [number, number, number],
+    mobileScale: 0.7,
+  },
+  {
+    id: 215,
+    parentFrameId: 5,
+    type: 'image-sequence' as const,
+    content: '/media/webp/octopus',  // 資料夾路徑，圖片命名為 0001.webp - 0040.webp
+    position: [-1.4, 0.45, 0.4] as [number, number, number],
+    width: 1.6,
+    height: 0.9,
+    scale: 2.0,
+    frameCount: 40,
+    fps: 24,
+    // 手機版設定
+    mobilePosition: [-0.35, 0.35, 0.9] as [number, number, number],
+    mobileScale: 0.7,
+  },
+  {
+    id: 216,
+    parentFrameId: 5,
+    type: 'image' as const,
+    content: '/media/webp/ar-2.webp',
+    position: [2.4, 1.55, -0.7] as [number, number, number],
+    width: 1.8,
+    height: 0.766,
+    scale: 1.2,
+    // 手機版設定
+    mobilePosition: [0.55, 1, -0.7] as [number, number, number],
+    mobileScale: 0.7,
   }
 ];
 
@@ -612,18 +677,20 @@ const supportsWebm = (() => {
          video.canPlayType('video/webm; codecs="vp9"') !== '';
 })();
 
-// 根據瀏覽器支援度選擇影片格式
+// 根據瀏覽器支援度選擇影片格式，並套用 base URL
 const getVideoUrl = (url: string): string => {
+  let finalUrl = url;
   if (url.endsWith('.webm') && !supportsWebm) {
     // 不支援 webm 則改用 mp4
-    return url.replace('/media/webm/', '/media/mp4/').replace('.webm', '.mp4');
+    finalUrl = url.replace('/media/webm/', '/media/mp4/').replace('.webm', '.mp4');
   }
-  return url;
+  // 套用 base URL 以支援 GitHub Pages
+  return getAssetPath(finalUrl);
 };
 
 function TextureContent({ url, opacity, alphaMap }: { url: string; opacity: number; alphaMap: THREE.CanvasTexture }) {
   const isVideo = url.endsWith('.mp4') || url.endsWith('.webm');
-  const finalUrl = isVideo ? getVideoUrl(url) : url;
+  const finalUrl = isVideo ? getVideoUrl(url) : getAssetPath(url);
 
   // For mobile, only start video playback when opacity > 0.1 (visible)
   const shouldStartVideo = !isMobileDevice || opacity > 0.1;
@@ -744,6 +811,92 @@ function Frame({
 }
 
 
+// --- IMAGE SEQUENCE MATERIAL COMPONENT ---
+// 用於播放 webp 圖片序列動畫
+function ImageSequenceMaterial({
+  basePath,
+  frameCount,
+  fps,
+  alphaMap,
+  materialRef
+}: {
+  basePath: string;
+  frameCount: number;
+  fps: number;
+  alphaMap: THREE.CanvasTexture;
+  materialRef: React.RefObject<THREE.MeshBasicMaterial | null>;
+}) {
+  const [currentFrame, setCurrentFrame] = useState(0);
+  const timeRef = useRef(0);
+  const texturesRef = useRef<THREE.Texture[]>([]);
+  const [texturesLoaded, setTexturesLoaded] = useState(false);
+
+  // 生成所有圖片路徑並載入
+  const texturePaths = useMemo(() => {
+    const paths: string[] = [];
+    for (let i = 1; i <= frameCount; i++) {
+      const frameNum = i.toString().padStart(4, '0');
+      paths.push(getAssetPath(`${basePath}/${frameNum}.webp`));
+    }
+    return paths;
+  }, [basePath, frameCount]);
+
+  // 載入所有 texture
+  useEffect(() => {
+    const loader = new THREE.TextureLoader();
+    const loadPromises = texturePaths.map(path =>
+      new Promise<THREE.Texture>((resolve) => {
+        loader.load(path, (texture) => {
+          texture.colorSpace = THREE.SRGBColorSpace;
+          resolve(texture);
+        });
+      })
+    );
+
+    Promise.all(loadPromises).then(textures => {
+      texturesRef.current = textures;
+      setTexturesLoaded(true);
+    });
+
+    return () => {
+      // 清理 textures
+      texturesRef.current.forEach(tex => tex.dispose());
+    };
+  }, [texturePaths]);
+
+  // 動畫播放
+  useFrame((_, delta) => {
+    if (!texturesLoaded || texturesRef.current.length === 0) return;
+
+    timeRef.current += delta;
+    const frameDuration = 1 / fps;
+
+    if (timeRef.current >= frameDuration) {
+      timeRef.current = 0;
+      setCurrentFrame(prev => (prev + 1) % frameCount);
+    }
+
+    // 更新材質的 map
+    if (materialRef.current && texturesRef.current[currentFrame]) {
+      materialRef.current.map = texturesRef.current[currentFrame];
+      materialRef.current.needsUpdate = true;
+    }
+  });
+
+  // 初始顯示第一幀
+  const initialTexture = texturesLoaded && texturesRef.current[0] ? texturesRef.current[0] : null;
+
+  return (
+    <meshBasicMaterial
+      ref={materialRef}
+      map={initialTexture}
+      alphaMap={alphaMap}
+      transparent
+      opacity={0}
+    />
+  );
+}
+
 // --- SUB-FRAME COMPONENT ---
 function SubFrame({ data, isParentFocused }: {
   data: SubFrameData;
@@ -759,13 +912,13 @@ function SubFrame({ data, isParentFocused }: {
   const finalScale = isMobileDevice && data.mobileScale !== undefined ? data.mobileScale : (data.scale || 1);
 
   // Since all textures are preloaded, we can call useTexture directly.
-  const texture = data.type === 'image' ? useTexture(data.content) : null;
+  const texture = data.type === 'image' ? useTexture(getAssetPath(data.content)) : null;
   if (texture) {
     texture.colorSpace = THREE.SRGBColorSpace;
   }
 
   const alphaMap = useMemo(() => {
-    if (data.type !== 'image' || !data.width || !data.height) {
+    if ((data.type !== 'image' && data.type !== 'image-sequence') || !data.width || !data.height) {
         const dummyCanvas = document.createElement('canvas');
         dummyCanvas.width = 1;
         dummyCanvas.height = 1;
@@ -844,6 +997,17 @@ function SubFrame({ data, isParentFocused }: {
             );
           })}
         </group>
+      )}
+      {data.type === 'image-sequence' && data.width && data.height && data.frameCount && data.fps && (
+        <Plane args={[data.width, data.height]}>
+          <ImageSequenceMaterial
+            basePath={data.content}
+            frameCount={data.frameCount}
+            fps={data.fps}
+            alphaMap={alphaMap}
+            materialRef={materialRef}
+          />
+        </Plane>
       )}
     </group>
   );
@@ -941,72 +1105,95 @@ function Experience({
   );
 }
 
-import { useProgress, Html } from '@react-three/drei';
+// 載入畫面元件（Canvas 外部的 HTML overlay）
+function LoadingOverlay({ progress, isVisible }: { progress: number; isVisible: boolean }) {
+  const percentage = Math.round(progress * 100);
 
-function Loader({ loadingProgress }: { loadingProgress: number }) {
-    const totalProgress = Math.round(loadingProgress * 100);
-  
-    const containerStyle: React.CSSProperties = {
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: '100%',
+      backgroundColor: '#050505',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      height: '100%',
-      width: '100%',
-      color: 'white',
-    };
-  
-    const waveContainerStyle: React.CSSProperties = {
-      display: 'flex',
-      justifyContent: 'center',
-      marginBottom: '20px',
-    };
-  
-    const boxStyle: React.CSSProperties = {
-      width: '12px',
-      height: '12px',
-      backgroundColor: 'white',
-      margin: '0 4px',
-      animation: 'wave 1.5s ease-in-out infinite',
-    };
-  
-    const progressTextStyle: React.CSSProperties = {
-      fontSize: '24px',
-      fontWeight: 'bold',
-      fontFamily: 'monospace',
-    };
-  
-    return (
-      <Html center>
-        <style>
-          {`
-            @keyframes wave {
-              0%, 60%, 100% {
-                transform: initial;
-              }
-              30% {
-                transform: translateY(-15px);
-              }
-            }
-          `}
-        </style>
-        <div style={containerStyle}>
-          <div style={waveContainerStyle}>
-            {[...Array(5)].map((_, i) => (
-              <div
-                key={i}
-                style={{
-                  ...boxStyle,
-                  animationDelay: `${i * 0.15}s`,
-                }}
-              />
-            ))}
-          </div>
-          <p style={progressTextStyle}>{`${totalProgress}%`}</p>
-        </div>
-      </Html>
-    );
-  }
+      zIndex: 1000,
+      opacity: isVisible ? 1 : 0,
+      pointerEvents: isVisible ? 'auto' : 'none',
+      transition: 'opacity 0.8s ease-out',
+    }}>
+      <style>
+        {`
+          @keyframes rotateCube {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+          @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+          }
+          @keyframes stretch {
+            0%, 100% { transform: scaleY(1); }
+            50% { transform: scaleY(2); }
+          }
+        `}
+      </style>
+
+      {/* 實心方塊 - 使用 3 個方塊組成伸縮動畫 */}
+      <div style={{
+        display: 'flex',
+        gap: '8px',
+        marginBottom: '30px',
+        alignItems: 'center',
+      }}>
+        {[...Array(3)].map((_, i) => (
+          <div
+            key={i}
+            style={{
+              width: '12px',
+              height: '12px',
+              backgroundColor: 'white',
+              animation: `stretch 0.8s ease-in-out infinite`,
+              animationDelay: `${i * 0.15}s`,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* 進度條 */}
+      <div style={{
+        width: '200px',
+        height: '2px',
+        backgroundColor: 'rgba(255,255,255,0.2)',
+        borderRadius: '1px',
+        overflow: 'hidden',
+        marginBottom: '15px',
+      }}>
+        <div style={{
+          width: `${percentage}%`,
+          height: '100%',
+          backgroundColor: 'white',
+          transition: 'width 0.3s ease-out',
+        }} />
+      </div>
+
+      {/* 百分比文字 */}
+      <p style={{
+        color: 'rgba(255,255,255,0.8)',
+        fontSize: '14px',
+        fontFamily: 'monospace',
+        letterSpacing: '3px',
+        margin: 0,
+      }}>
+        {percentage}%
+      </p>
+    </div>
+  );
+}
 
 // --- MAIN PAGE COMPONENT ---
 export default function Video() {
@@ -1020,52 +1207,92 @@ export default function Video() {
   const [allFramesReady, setAllFramesReady] = useState(false);
   const [loadingProgress, setLoadingProgress] = useState(0);
 
-  const allImageUrls = useMemo(() => {
-    const frameImageUrls = framesData
-        .flatMap(f => [f.textureUrl, f.highResTextureUrl])
-        .filter(url => url && !url.endsWith('.mp4'));
-    
-    const subFrameImageUrls = subFramesData
-        .filter(sf => sf.type === 'image')
-        .map(sf => sf.content);
+  // 分離圖片和影片 URL
+  const { imageUrls, videoUrls } = useMemo(() => {
+    const isVideoUrl = (url: string) => url.endsWith('.mp4') || url.endsWith('.webm');
 
-    // Remove duplicates
-    return [...new Set([...frameImageUrls, ...subFrameImageUrls])];
+    const frameUrls = framesData.flatMap(f => [f.textureUrl, f.highResTextureUrl]).filter(Boolean);
+    const subFrameUrls = subFramesData.filter(sf => sf.type === 'image').map(sf => sf.content);
+
+    const allUrls = [...new Set([...frameUrls, ...subFrameUrls])];
+
+    return {
+      imageUrls: allUrls.filter(url => !isVideoUrl(url)),
+      videoUrls: allUrls.filter(url => isVideoUrl(url)),
+    };
   }, []);
 
   useEffect(() => {
     const preloadAssets = async () => {
-      if (allImageUrls.length === 0) {
+      const totalAssets = imageUrls.length + videoUrls.length;
+
+      if (totalAssets === 0) {
         setLoadingProgress(1);
         setAllFramesReady(true);
         return;
       }
 
       let loadedCount = 0;
-      for (const url of allImageUrls) {
-        try {
-          await new Promise((resolve, reject) => {
-            const img = new Image();
-            img.onload = () => resolve(img);
-            img.onerror = (err) => {
-                console.error(`Failed to load image: ${url}`, err);
-                resolve(err); // Resolve even on error to not block the sequence
-            };
-            img.src = url;
-          });
-        } catch (error) {
-          console.error(`Error in preloading image: ${url}`, error);
-        } finally {
-            loadedCount++;
-            setLoadingProgress(loadedCount / allImageUrls.length);
-        }
-      }
-      
+      const updateProgress = () => {
+        loadedCount++;
+        setLoadingProgress(loadedCount / totalAssets);
+      };
+
+      // 預載入圖片
+      const imagePromises = imageUrls.map(url =>
+        new Promise<void>((resolve) => {
+          const img = new Image();
+          img.onload = () => { updateProgress(); resolve(); };
+          img.onerror = () => {
+            console.warn(`Failed to load image: ${url}`);
+            updateProgress();
+            resolve();
+          };
+          img.src = getAssetPath(url);
+        })
+      );
+
+      // 預載入影片（使用 loadeddata 事件，表示第一幀已載入）
+      const videoPromises = videoUrls.map(url =>
+        new Promise<void>((resolve) => {
+          const video = document.createElement('video');
+          video.muted = true;
+          video.preload = 'metadata';
+
+          const timeoutId = setTimeout(() => {
+            // 影片載入超時（5秒），繼續執行
+            console.warn(`Video load timeout: ${url}`);
+            updateProgress();
+            resolve();
+          }, 5000);
+
+          video.onloadeddata = () => {
+            clearTimeout(timeoutId);
+            updateProgress();
+            resolve();
+          };
+          video.onerror = () => {
+            clearTimeout(timeoutId);
+            console.warn(`Failed to load video: ${url}`);
+            updateProgress();
+            resolve();
+          };
+
+          // 處理 webm/mp4 格式
+          const finalUrl = getVideoUrl(url);
+          video.src = finalUrl;
+          video.load();
+        })
+      );
+
+      // 同時載入所有資源
+      await Promise.all([...imagePromises, ...videoPromises]);
+
       setAllFramesReady(true);
     };
 
     preloadAssets();
-  }, [allImageUrls]);
+  }, [imageUrls, videoUrls]);
   // --- End of Loading Logic ---
 
 
@@ -1162,17 +1389,33 @@ export default function Video() {
   }, [allFramesReady, isInitialView]);
   
 
+  // 控制載入畫面的顯示（載入完成後延遲淡出）
+  const [showLoadingOverlay, setShowLoadingOverlay] = useState(true);
+
+  useEffect(() => {
+    if (allFramesReady) {
+      // 載入完成後，延遲一小段時間再開始淡出
+      const timer = setTimeout(() => {
+        setShowLoadingOverlay(false);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [allFramesReady]);
+
   return (
     <div className="video-container">
+      {/* 載入畫面 - Canvas 外部 */}
+      <LoadingOverlay progress={loadingProgress} isVisible={showLoadingOverlay} />
+
       {showVideo && <VideoPlayer url={videoUrl} onClose={handleCloseVideo} />}
       <div style={{
         position: 'absolute',
-        bottom: isMobileDevice ? '8vh' : '8vh', // 手機版增加 bottom 值來補償 video-container 的 -5vh transform
-        left: isMobileDevice ? '5%' : '40%',
-        transform: isMobileDevice ? 'translateX(0)' : 'translateX(-520px)',
+        bottom: '8vh',
+        left: isMobileDevice ? '5%' : (isTabletDevice ? '5%' : '40%'),
+        transform: isMobileDevice ? 'translateX(0)' : (isTabletDevice ? 'translateX(0)' : 'translateX(-520px)'),
         color: 'white',
         zIndex: 10,
-        maxWidth: isMobileDevice ? '90%' : '1000px',
+        maxWidth: isMobileDevice ? '90%' : (isTabletDevice ? '60%' : '1000px'),
         pointerEvents: 'none',
         opacity: isInitialView || !allFramesReady ? 0 : 1,
         transition: 'opacity 0.5s ease-in-out',
@@ -1212,24 +1455,24 @@ export default function Video() {
         zIndex: 10,
       }}>
         <div style={{ fontSize: '14px', letterSpacing: '0.2em', marginBottom: '10px', textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}>
-          {isMobileDevice ? '向上滑動' : '向下滑動'}
+          {isTouchDevice ? '向上滑動' : '向下滑動'}
         </div>
-        <div style={{ fontSize: '24px', animation: isMobileDevice ? 'floatUp 2s ease-in-out infinite' : 'float 2s ease-in-out infinite' }}>
-          {isMobileDevice ? '↑' : '↓'}
+        <div style={{ fontSize: '24px', animation: isTouchDevice ? 'floatUp 2s ease-in-out infinite' : 'float 2s ease-in-out infinite' }}>
+          {isTouchDevice ? '↑' : '↓'}
         </div>
       </div>
       <Canvas camera={{ position: [0, 0, 10], fov: 75 }}>
         <color attach="background" args={['#050505']} />
         <ambientLight intensity={0.2} />
-        <Suspense fallback={<Loader loadingProgress={loadingProgress} />}>
-            <Experience 
-                currentIndex={currentIndex} 
-                isInitialView={isInitialView} 
+        <Suspense fallback={null}>
+            <Experience
+                currentIndex={currentIndex}
+                isInitialView={isInitialView}
                 onFrameClick={handleFrameClick}
                 allFramesReady={allFramesReady}
             />
         </Suspense>
-        {!isMobileDevice && (
+        {!isMobileDevice && !isTabletDevice && (
           <EffectComposer>
             <Bloom luminanceThreshold={1} intensity={1.2} mipmapBlur />
             <Noise opacity={0.03} />

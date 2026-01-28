@@ -194,7 +194,7 @@ body,
   justify-content: flex-start; /* 從頂部開始 */
   align-items: center;
   color: white;
-  padding-top: 80px;
+  padding-top: 220px; /* 與頁首的距離 */
   pointer-events: none; /* Allow interaction with elements on Scene below */
 }
 
@@ -214,15 +214,10 @@ body,
 
 
 .main-glb-viewer {
-
     width: 100%;
-
     height: 100%;
-
-    border-radius: 10px;
-
-  background-color: transparent; /* Assuming a scene background */
-
+    border-radius: 0;
+    background-color: transparent; /* Assuming a scene background */
 }
 
 
@@ -411,106 +406,167 @@ body,
   }
 }
 
-@media (max-width: 768px) {
-  .project-display {
-    padding-bottom: 60px;
-    padding-top: 20px;
-    justify-content: flex-start;
-    min-height: auto;
-  }
-  .main-glb-container {
-    padding: 10px;
-    width: 70%;
-    margin-top: 60px;
-    aspect-ratio: 1 / 1; /* 手機版改為 9:16 長條比例 */
-    max-height: calc(100vh - 200px); /* 限制最大高度，預留底部面板空間 */
-  }
-  .main-glb-viewer {
-    max-height: none;
-  }
+/* === 手機版/平板版滑動面板樣式（不受媒體查詢限制） === */
+.project-info-box.mobile-panel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  max-height: 85vh; /* 最大高度 */
+  border-radius: 20px 20px 0 0;
+  padding: 0;
+  transform: translateY(calc(100% - 60px)); /* 預設只露出一小部分 */
+  transition: transform 0.3s ease-out;
+  flex-direction: column;
+  overflow: hidden;
+}
 
-  /* === 手機版滑動面板樣式 === */
-  .project-info-box.mobile-panel {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    max-height: 85vh; /* 最大高度 */
-    border-radius: 20px 20px 0 0;
-    padding: 0;
-    transform: translateY(calc(100% - 120px)); /* 預設只露出一部分 */
-    transition: transform 0.3s ease-out;
-    flex-direction: column;
-    overflow: hidden;
-  }
+.project-info-box.mobile-panel.expanded {
+  transform: translateY(0); /* 展開時完全顯示 */
+}
 
-  .project-info-box.mobile-panel.expanded {
-    transform: translateY(0); /* 展開時完全顯示 */
-  }
+/* 點擊把手區域 */
+.panel-drag-handle {
+  width: 100%;
+  padding: 12px 0 8px 0;
+  display: flex;
+  justify-content: center;
+  cursor: pointer;
+}
 
-  /* 拖曳把手區域 */
-  .panel-drag-handle {
-    width: 100%;
-    padding: 12px 0 8px 0;
-    display: flex;
-    justify-content: center;
-    cursor: grab;
-    touch-action: none;
-  }
+/* Chevron 樣式箭頭（像 < > 但朝上下） */
+.panel-chevron {
+  width: 14px;
+  height: 14px;
+  border-left: 2px solid rgba(255, 255, 255, 0.8);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.8);
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
 
-  .panel-drag-handle:active {
-    cursor: grabbing;
-  }
+.panel-chevron.up {
+  transform: rotate(135deg);
+  margin-top: 5px;
+}
 
-  /* iPhone 風格的拖曳指示器 */
-  .drag-indicator {
-    width: 36px;
-    height: 5px;
-    background-color: rgba(255, 255, 255, 0.5);
-    border-radius: 3px;
-  }
+.panel-chevron.down {
+  transform: rotate(-45deg);
+  margin-bottom: 5px;
+}
 
+.panel-drag-handle:hover .panel-chevron {
+  border-color: rgba(255, 255, 255, 1);
+}
+
+.project-info-box.mobile-panel .project-info-box-inner {
+  flex-direction: column;
+  padding: 0 1.5rem 2rem 1.5rem;
+  overflow-y: auto;
+  max-height: calc(85vh - 30px);
+}
+
+.project-info-box.mobile-panel .project-text-content {
+  text-align: left;
+}
+
+.project-info-box.mobile-panel .project-text-content h2 {
+  font-size: 1.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.project-info-box.mobile-panel .project-text-content p {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: #ccc;
+}
+
+.project-info-box.mobile-panel .project-video-container {
+  width: 100%;
+  max-width: none;
+  margin-top: 1rem;
+}
+
+/* 預設隱藏分隔線（直放時） */
+.project-info-box.mobile-panel .divider {
+  display: none;
+}
+
+.project-info-box.mobile-panel .project-video {
+  width: 100%;
+  border-radius: 10px;
+}
+
+/* iPad 橫放時使用橫向排列（寬度 > 768px 的平板） */
+@media (min-width: 769px) {
   .project-info-box.mobile-panel .project-info-box-inner {
-    flex-direction: column;
-    padding: 0 1.5rem 2rem 1.5rem;
-    overflow-y: auto;
-    max-height: calc(85vh - 30px);
+    flex-direction: row;
+    align-items: flex-baseline;
+    justify-content: center;
+    gap: 20px;
   }
 
   .project-info-box.mobile-panel .project-text-content {
+    flex: 0 1 auto;
+    max-width: 400px;
     text-align: left;
   }
 
-  .project-info-box.mobile-panel .project-text-content h2 {
-    font-size: 1.4rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .project-info-box.mobile-panel .project-text-content p {
-    font-size: 0.9rem;
-    line-height: 1.6;
-    color: #ccc;
+  .project-info-box.mobile-panel .divider {
+    display: block;
+    width: 1px;
+    height: 100px;
+    background-color: rgba(255, 255, 255, 0.3);
+    margin: 0 10px;
+    align-self: center;
+    flex-shrink: 0;
   }
 
   .project-info-box.mobile-panel .project-video-container {
-    width: 100%;
-    max-width: none;
-    margin-top: 1rem;
+    flex: 0 0 auto;
+    width: 200px;
+    margin-top: 0;
   }
+}
 
-  .project-info-box.mobile-panel .project-video {
+@media (max-width: 768px) {
+  .project-display {
+    padding: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
-    border-radius: 10px;
+    height: 100%;
+  }
+  .main-glb-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    aspect-ratio: unset;
+    max-height: none;
+    max-width: none;
+  }
+  .main-glb-viewer {
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    border-radius: 0;
   }
 
   .project-pagination {
-    margin-top: 16px;
-    margin-bottom: 4px;
+    position: fixed;
+    bottom: 70px; /* 在滑動面板上方 */
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0;
+    z-index: 6;
   }
   .project-node {
     width: 10px;
     height: 15px;
-    margin: 0 20px;
+    margin: 0 10px;
   }
   .project-node.active {
     height: 25px;
@@ -527,11 +583,50 @@ body,
   .project-node {
     width: 8px;
     height: 12px;
-    margin: 0 15px;
+    margin: 0 8px;
   }
   .project-node.active {
     height: 20px;
   }
+}
+
+/* iPad 全螢幕 3D 模型樣式 */
+.project-display.tablet-fullscreen {
+  padding: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.project-display.tablet-fullscreen .main-glb-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  aspect-ratio: unset;
+  max-height: none;
+  max-width: none;
+}
+
+.project-display.tablet-fullscreen .main-glb-viewer {
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  border-radius: 0 !important;
+}
+
+.project-display.tablet-fullscreen .project-pagination {
+  position: fixed;
+  bottom: 70px; /* 在滑動面板上方 */
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  z-index: 6;
 }
 
 

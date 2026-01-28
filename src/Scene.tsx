@@ -6,7 +6,27 @@ import { Text } from '@react-three/drei';
 import { useNavigate } from 'react-router-dom';
 import LockModel from './LockModel';
 
-const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+// 檢測是否為觸控設備（包含偽裝成 Mac 的 iPad）
+const isTouchDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+  (navigator.userAgent.includes('Mac') && 'ontouchend' in document);
+// 檢測是否為平板設備（iPad）- 需排除 iPhone（iPhone UA 也包含 "Mac OS X"）
+const isTabletDevice = /iPad/i.test(navigator.userAgent) ||
+  (navigator.userAgent.includes('Mac') && 'ontouchend' in document && !/iPhone/i.test(navigator.userAgent));
+// 檢測是否為直向（高度 > 寬度）
+const isPortrait = window.innerHeight > window.innerWidth;
+// 使用手機版排版：觸控設備 + 直向（手機/平板橫放都用桌面版）
+const isMobileDevice = isTouchDevice && isPortrait;
+
+// 監聽螢幕旋轉，重新載入頁面以更新排版（觸控設備都需要）
+if (isTouchDevice) {
+  let lastOrientation = isPortrait;
+  window.addEventListener('resize', () => {
+    const currentOrientation = window.innerHeight > window.innerWidth;
+    if (currentOrientation !== lastOrientation) {
+      window.location.reload();
+    }
+  });
+}
 
 const AnimatedText = ({ visible, ...props }: any) => {
   const textRef = useRef<any>();
@@ -978,7 +998,7 @@ export default function Scene({ initialPortfolioMode = false, enableHomeUI = tru
     <div style={{ width: '100vw', height: '100vh', position: 'fixed', top: 0, left: 0, zIndex: 0 }}>
       {/* 調整初始相機位置，使其接近 CameraRig 的起始點 (85, -30, 85)，避免載入時鏡頭大幅跳動 */}
       <Canvas
-        gl={{ powerPreference: 'high-performance' }}
+        gl={{ powerPreference: 'high-performance', stencil: false, depth: true, alpha: false }}
         camera={{ position: initialPortfolioMode ? [0, 0, 500] : [85, -30, 85], fov: 50 }}>
         {/* 設定背景顏色，確保後製特效能作用於背景 */}
         <color attach="background" args={['#050505']} />
@@ -993,11 +1013,11 @@ export default function Scene({ initialPortfolioMode = false, enableHomeUI = tru
           <Cubes stage={stage} focusTarget={focusTarget} portfolioMode={portfolioMode} onSpecialCubeClick={handleSpecialCubeClick} skipAnimation={skipAnimation} />
           <CameraRig stage={stage} focusTarget={focusTarget} portfolioMode={portfolioMode} />
 
-          {/* 後製特效：膠片顆粒濾鏡 */}
-          <EffectComposer>
-            <Bloom luminanceThreshold={0.5} intensity={1.5} mipmapBlur /> {/* 發光特效 */}
-            <Noise opacity={0.025} /> {/* 加入極微量的噪訊來消除色彩斷層 (Dithering) */}
-            <Vignette eskil={false} offset={0.1} darkness={1.1} /> {/* 暈影效果，讓四角變暗，增加電影感 */}
+          {/* 後製特效：膠片顆粒濾鏡（發光、噪訊、暈影） */}
+          <EffectComposer stencilBuffer={false} multisampling={0} frameBufferType={THREE.HalfFloatType}>
+            <Bloom luminanceThreshold={0.5} intensity={1.5} mipmapBlur />
+            <Noise opacity={0.025} />
+            <Vignette eskil={false} offset={0.1} darkness={1.1} />
           </EffectComposer>
         </Suspense>
       </Canvas>
@@ -1026,10 +1046,10 @@ export default function Scene({ initialPortfolioMode = false, enableHomeUI = tru
           
           {/* 滑動提示 */}
           <div style={{ fontSize: '14px', letterSpacing: '0.2em', marginBottom: '10px', textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}>
-            {isMobileDevice ? '向上滑動' : '向下滑動'}
+            {isTouchDevice ? '向上滑動' : '向下滑動'}
           </div>
-          <div style={{ fontSize: '24px', animation: isMobileDevice ? 'floatUp 2s ease-in-out infinite' : 'float 2s ease-in-out infinite' }}>
-            {isMobileDevice ? '↑' : '↓'}
+          <div style={{ fontSize: '24px', animation: isTouchDevice ? 'floatUp 2s ease-in-out infinite' : 'float 2s ease-in-out infinite' }}>
+            {isTouchDevice ? '↑' : '↓'}
           </div>
         </div>
       )}

@@ -2,6 +2,9 @@ import { useEffect } from 'react';
 import * as THREE from 'three';
 import { useGLTF } from '@react-three/drei';
 
+// 使用 Vite import 確保路徑在 build 後正確
+import lockModelUrl from '../media/glb/lock.glb';
+
 // 定義 props 的類型，使用更通用的陣列類型以避免錯誤
 interface LockModelProps {
   scale?: number | [number, number, number];
@@ -15,7 +18,7 @@ export default function LockModel({
   scale = [10, 10, 10],
   position = [0, -2, 0],
   rotation = [0, 1.58, 0]
-}: LockModelProps) {  const gltf = useGLTF('../media/glb/lock.glb');
+}: LockModelProps) {  const gltf = useGLTF(lockModelUrl);
 
   useEffect(() => {
     if (gltf.scene) {
@@ -40,4 +43,4 @@ export default function LockModel({
   );
 }
 
-useGLTF.preload('../media/glb/lock.glb');
+useGLTF.preload(lockModelUrl);

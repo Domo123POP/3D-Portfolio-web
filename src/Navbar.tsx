@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { getAssetPath } from './utils/paths';
 
 // 預載入所有 menu icon 幀 (URL 編碼空格)
+// 使用原始檔案 00004-00022，共 19 幀
 const menuFrames: string[] = [];
-for (let i = 0; i < 24; i++) {
+for (let i = 4; i <= 22; i++) {
   const frameNum = i.toString().padStart(5, '0');
-  menuFrames.push(`/media/icon/menu/Comp%201_${frameNum}.png`);
+  menuFrames.push(getAssetPath(`/media/icon/menu/Comp%201_${frameNum}.png`));
 }
 
 export default function Navbar() {
@@ -33,8 +35,8 @@ export default function Navbar() {
     }
     isAnimatingRef.current = true;
 
-    const startFrame = forward ? 0 : 23;
-    const endFrame = forward ? 23 : 0;
+    const startFrame = forward ? 0 : 18;  // 19 幀 (index 0-18)
+    const endFrame = forward ? 18 : 0;
     const step = forward ? 1 : -1;
     let frame = startFrame;
     const fps = 30;
@@ -67,28 +69,38 @@ export default function Navbar() {
     animationRef.current = requestAnimationFrame(animate);
   };
 
+  // 設定選單出現/消失的幀數 (可調整)
+  const MENU_SHOW_FRAME = 2;  // 開啟時：播放到第幾幀才顯示選單 (0-18)
+  const MENU_HIDE_FRAME = 0;  // 關閉時：倒退到第幾幀才隱藏選單 (0-18)
+
   const toggleMenu = () => {
     if (isAnimatingRef.current) return; // 防止動畫中重複觸發
 
     if (!isMenuOpen) {
       setIsMenuOpen(true);
-      // 正向播放：在第 4 幀 (frame index 3) 時開始顯示選單
+      // 正向播放：在指定幀數時顯示選單
       playAnimation(true, (frame) => {
-        if (frame === 3) {
+        if (frame === MENU_SHOW_FRAME) {
+          // 先顯示選單（opacity 為 0），等 DOM 渲染後再淡入
           setIsMenuVisible(true);
-          setMenuOpacity(1);
+          // 使用 requestAnimationFrame 確保 DOM 已渲染，再觸發淡入動畫
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              setMenuOpacity(1);
+            });
+          });
         }
       });
     } else {
-      // 反向播放：在第 22 幀 (frame index 21) 時開始隱藏選單
+      // 反向播放：在指定幀數時隱藏選單
       playAnimation(false, (frame) => {
-        if (frame === 21) {
+        if (frame === MENU_HIDE_FRAME) {
           setMenuOpacity(0);
           // 等漸出動畫完成後再隱藏
           setTimeout(() => {
             setIsMenuVisible(false);
             setIsMenuOpen(false);
-          }, 300);
+          }, 500);
         }
       });
     }
@@ -98,12 +110,12 @@ export default function Navbar() {
   const closeMenu = () => {
     if (!isMenuOpen || isAnimatingRef.current) return;
     playAnimation(false, (frame) => {
-      if (frame === 21) {
+      if (frame === MENU_HIDE_FRAME) {
         setMenuOpacity(0);
         setTimeout(() => {
           setIsMenuVisible(false);
           setIsMenuOpen(false);
-        }, 300);
+        }, 500);
       }
     });
   };
@@ -169,7 +181,7 @@ export default function Navbar() {
         </div>
 
         {/* 手機版漢堡按鈕 - PNG 序列動畫 */}
-        <button className="navbar-toggle" onClick={toggleMenu} style={{ marginTop: '4px' }}>
+        <button className="navbar-toggle" onClick={toggleMenu} style={{ transform: 'translateY(7px)' }}>
           <img
             src={menuFrames[currentFrame]}
             alt="Menu"
@@ -201,7 +213,7 @@ export default function Navbar() {
             gap: '20px',
             borderBottomLeftRadius: '10px',
             opacity: menuOpacity,
-            transition: 'opacity 0.3s ease-out',
+            transition: 'opacity 0.5s ease-out',
           }}>
             {allLinks.map(link => (
               <Link
