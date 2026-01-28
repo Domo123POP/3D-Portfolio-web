@@ -2,7 +2,12 @@ import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Mesh } from 'three';
 
-export default function ColorCube({ color, position }) {
+interface ColorCubeProps {
+  color: string;
+  position: [number, number, number];
+}
+
+export default function ColorCube({ color, position }: ColorCubeProps) {
   const mesh = useRef<Mesh>(null);
 
   useFrame((_state, delta) => {

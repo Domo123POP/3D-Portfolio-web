@@ -10,12 +10,14 @@ import LockModel from './LockModel';
 const isTouchDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
   (navigator.userAgent.includes('Mac') && 'ontouchend' in document);
 // 檢測是否為平板設備（iPad）- 需排除 iPhone（iPhone UA 也包含 "Mac OS X"）
-const isTabletDevice = /iPad/i.test(navigator.userAgent) ||
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _isTabletDevice = /iPad/i.test(navigator.userAgent) ||
   (navigator.userAgent.includes('Mac') && 'ontouchend' in document && !/iPhone/i.test(navigator.userAgent));
 // 檢測是否為直向（高度 > 寬度）
 const isPortrait = window.innerHeight > window.innerWidth;
 // 使用手機版排版：觸控設備 + 直向（手機/平板橫放都用桌面版）
-const isMobileDevice = isTouchDevice && isPortrait;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _isMobileDevice = isTouchDevice && isPortrait;
 
 // 監聽螢幕旋轉，重新載入頁面以更新排版（觸控設備都需要）
 if (isTouchDevice) {

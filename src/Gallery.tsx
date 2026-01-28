@@ -1,6 +1,6 @@
-import { useRef, Suspense, useState, useEffect, useMemo, useCallback } from 'react';
+import { useRef, Suspense, useState, useEffect, useMemo } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Plane, useTexture, useVideoTexture, Text, useGLTF } from '@react-three/drei';
+import { Plane, useTexture, useVideoTexture, Text } from '@react-three/drei';
 import * as THREE from 'three';
 import { EffectComposer, Noise, Bloom, Vignette } from '@react-three/postprocessing';
 import './Gallery.css';
@@ -705,7 +705,8 @@ function TextureContent({ url, opacity, alphaMap }: { url: string; opacity: numb
     texture.wrapT = THREE.ClampToEdgeWrapping;
 
     const planeAspect = (alphaMap.image.width || 1) / (alphaMap.image.height || 1);
-    const imageAspect = (texture.image.videoWidth || texture.image.width) / (texture.image.videoHeight || texture.image.height);
+    const img = texture.image as HTMLVideoElement | HTMLImageElement;
+    const imageAspect = ('videoWidth' in img ? img.videoWidth : img.width) / ('videoHeight' in img ? img.videoHeight : img.height);
 
     if (imageAspect > planeAspect) {
       texture.repeat.set(1, planeAspect / imageAspect);
