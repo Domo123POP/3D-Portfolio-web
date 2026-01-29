@@ -7,20 +7,73 @@ import { useNavigate } from 'react-router-dom';
 import Scene from './Scene';
 import './Private.css';
 
-interface WorkSection {
-  label: string;
-  content: string;
-}
-
 interface Work {
   id: number;
   title: string;
   mediaUrl: string;
   mediaType: 'image' | 'video';
-  sections: WorkSection[];
+  // 頂部白色資訊條
+  topBar: {
+    left: string;    // 左邊文字
+    center: string;  // 中間編號（會自動格式化為 001）
+    right: string;   // 右邊文字
+  };
+  // 媒體下方三欄標籤
+  mediaLabels: {
+    left: string;
+    center: string;
+    right: string;
+  };
+  // 描述文字
+  description: string;
+  // 底部三欄標籤
+  bottomLabels: {
+    left: string;
+    center: string;
+    right: string;
+  };
 }
 
 const CORRECT_PASSWORD = '1234';
+
+// 解析文字標記，支援 [g]灰色文字[/g] 和 \n 換行
+function parseStyledText(text: string): React.ReactNode[] {
+  const parts: React.ReactNode[] = [];
+  // 匹配 [g]...[/g] 標籤和換行符
+  const regex = /(\[g\].*?\[\/g\]|\n)/g;
+  let lastIndex = 0;
+  let match;
+  let keyIndex = 0;
+
+  while ((match = regex.exec(text)) !== null) {
+    // 添加標籤前的普通文字
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index));
+    }
+
+    if (match[0] === '\n') {
+      // 換行符
+      parts.push(<br key={`br-${keyIndex++}`} />);
+    } else {
+      // [g]...[/g] 灰色文字
+      const grayText = match[0].replace(/\[g\]|\[\/g\]/g, '');
+      parts.push(
+        <span key={`gray-${keyIndex++}`} className="text-gray">
+          {grayText}
+        </span>
+      );
+    }
+
+    lastIndex = match.index + match[0].length;
+  }
+
+  // 添加剩餘的文字
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
+
+  return parts;
+}
 
 // 發光自轉空心方塊元件
 function GlowingCube() {
@@ -64,60 +117,110 @@ const privateWorks: Work[] = [
     title: 'Private Project 1',
     mediaUrl: '/path/to/media1.jpg',
     mediaType: 'image',
-    sections: [
-      { label: 'Client', content: 'Confidential Client A' },
-      { label: 'Role', content: 'Lead VFX Artist' },
-      { label: 'Description', content: 'Detailed description of the private project...' },
-      { label: 'Tools', content: 'Houdini, Nuke, Maya' },
-    ]
+    topBar: {
+      left: 'Confidential Client A',
+      center: '001',
+      right: 'Lead VFX Artist',
+    },
+    mediaLabels: {
+      left: 'Confidential Client A',
+      center: 'Project Info',
+      right: 'Houdini, Nuke, Maya'
+    },
+    description: '我是無意義的文字內容，我是無意義的文字內容，我是無意義的文字內容，我是無意義的文字內容，我是無意義的文字內容，我是無意義的文字內容，我是無意義的文字內容，我是無意義的文字內容。',
+    bottomLabels: {
+      left: 'Credits -',
+      center: 'Houdini, Nuke\n, M\na\nya',
+      right: 'Lead VFX Artist',
+    },
   },
   {
     id: 2,
     title: 'Private Project 2',
     mediaUrl: '/path/to/media2.mp4',
     mediaType: 'video',
-    sections: [
-      { label: 'Client', content: 'Confidential Client B' },
-      { label: 'Role', content: 'VFX Supervisor' },
-      { label: 'Description', content: 'Another private project description...' },
-      { label: 'Tools', content: 'Cinema 4D, After Effects' },
-    ]
+    topBar: {
+      left: 'Confidential Client B',
+      center: '002',
+      right: 'VFX Supervisor',
+    },
+    mediaLabels: {
+      left: 'Confidential Client B',
+      center: 'Project Info',
+      right: 'Houdini, Nuke, Maya',
+    },
+    description: '我是無意義的文字內容，我是無意義的文字內容，我是無意義的文字內容，我是無意義的文字內容，我是無意義的文字內容，我是無意義的文字內容，我是無意義的文字內容，我是無意義的文字內容。',
+    bottomLabels: {
+      left: 'Credits -',
+      center: 'Cinema 4D,\n [g]After Effects[/g]',
+      right: 'VFX Supervisor',
+    },
   },
   {
     id: 3,
     title: 'Private Project 3',
     mediaUrl: '/path/to/media3.jpg',
     mediaType: 'image',
-    sections: [
-      { label: 'Client', content: 'Confidential Client C' },
-      { label: 'Role', content: 'Technical Artist' },
-      { label: 'Description', content: 'Third private project details...' },
-      { label: 'Tools', content: 'Unreal Engine, Substance' },
-    ]
+    topBar: {
+      left: 'Confidential Client C',
+      center: '003',
+      right: 'Technical Artist',
+    },
+    mediaLabels: {
+      left: 'Confidential Client C',
+      center: 'Project Info',
+      right: 'Houdini, Nuke, Maya',
+    },
+    description: '我是無意義的文字內容，我是無意義的文字內容，我是無意義的文字內容，我是無意義的文字內容，我是無意義的文字內容，我是無意義的文字內容，我是無意義的文字內容，我是無意義的文字內容。',
+    bottomLabels: {
+      left: 'Credits -',
+      center: 'Unreal Engine, Substance',
+      right: 'Technical Artist',
+    },
   },
   {
     id: 4,
     title: 'Private Project 4',
     mediaUrl: '/path/to/media4.jpg',
     mediaType: 'image',
-    sections: [
-      { label: 'Client', content: 'Confidential Client D' },
-      { label: 'Role', content: 'Compositor' },
-      { label: 'Description', content: 'Fourth project information...' },
-      { label: 'Tools', content: 'Nuke, Photoshop' },
-    ]
+    topBar: {
+      left: 'Confidential Client D',
+      center: '004',
+      right: 'Compositor',
+    },
+    mediaLabels: {
+      left: 'Confidential Client D',
+      center: 'Project Info',
+      right: 'Houdini, Nuke, Maya',
+    },
+    description: '我是無意義的文字內容，我是無意義的文字內容，我是無意義的文字內容，我是無意義的文字內容，我是無意義的文字內容，我是無意義的文字內容，我是無意義的文字內容，我是無意義的文字內容。',
+    bottomLabels: {
+      left: 'Credits -',
+      center: 'Nuke, Photoshop',
+      right: 'Compositor',
+    },
   },
   {
     id: 5,
     title: 'Private Project 5',
     mediaUrl: '/path/to/media5.mp4',
     mediaType: 'video',
-    sections: [
-      { label: 'Client', content: 'Confidential Client E' },
-      { label: 'Role', content: '3D Generalist' },
-      { label: 'Description', content: 'Fifth project overview...' },
-      { label: 'Tools', content: 'Blender, Houdini, Redshift' },
-    ]
+    topBar: {
+      left: 'Confidential Client E',
+      center: '005',
+      right: '3D Generalist',
+    },
+    mediaLabels: {
+      left: 'Confidential Client E',
+      center: 'Project Info',
+      right: 'Houdini, Nuke, Maya',
+    },
+    description: '我是無意義的文字內容，我是無意義的文字內容，我是無意義的文字內容，我是無意義的文字內容，我是無意義的文字內容，我是無意義的文字內容，我是無意義的文字內容，我是無意義的文字內容。',
+    bottomLabels: {
+      left: 'Credits -',
+      center: 'Blender, Houdini, Redshift',
+      right: '3D Generalist',
+    },
   },
 ];
 
@@ -240,31 +343,57 @@ function PasswordModal({ onCorrectPassword }: { onCorrectPassword: () => void })
   );
 }
 
-function Card3D({ work, cardIndex, isMobile }: {
+function Card3D({ work, cardIndex, isMobile, isLandscapeTablet }: {
   work: Work;
   cardIndex: number;
   isMobile: boolean;
+  isLandscapeTablet: boolean;
 }) {
+  // 橫向平板使用固定寬高比，其他情況用視窗高度計算
+  const cardHeight = isLandscapeTablet ? '110vh' : 'calc(100vh - 125px)';
+  const cardWidth = isLandscapeTablet ? '100vw' : (isMobile ? '95vw' : '90vw');
+  const cardMaxWidth = isLandscapeTablet ? '600px' : (isMobile ? '100%' : '800px');
+  // 橫向平板時將卡片往下移動，避免超出頁首
+  const meshY = isLandscapeTablet ? -0.4 : -0.04;
+
   return (
-    <mesh position={[cardIndex * 2.5, 0, 0]}>
+    <mesh position={[cardIndex * 2.5, meshY, 0]}>
       <planeGeometry args={[4, 5.66]} />
       <meshBasicMaterial transparent opacity={0} />
       <Html
         transform
-        distanceFactor={isMobile ? 0.8 : 1.2}
+        distanceFactor={isLandscapeTablet ? 1.5 : (isMobile ? 1.2 : 1.2)}
         center
         zIndexRange={[50, 0]}
         style={{
-          width: isMobile ? '95vw' : '90vw',
-          maxWidth: isMobile ? '100%' : '800px',
-          height: 'calc(100vh - 80px)',
+          width: cardWidth,
+          maxWidth: cardMaxWidth,
+          height: cardHeight,
           maxHeight: '1200px',
           pointerEvents: 'auto',
         }}
       >
         <div className="card-3d-content">
+          {/* 頂部區域：Logo 和 資訊條 */}
+          <div className="card-header">
+            {/* 左上角 Logo */}
+            <div className="card-logo">Domo</div>
+
+            {/* 右上角資訊條 */}
+            <div className="card-info-bar">
+              <span className="info-left">{work.topBar.left}</span>
+              <span className="info-center">{work.topBar.center}</span>
+              <span className="info-right">{work.topBar.right}</span>
+            </div>
+          </div>
+
+          {/* 間隔區域 */}
+          <div className="card-spacer"></div>
+
+          {/* 標題 - 靠左對齊 */}
           <h2 className="card-title">{work.title}</h2>
 
+          {/* 媒體內容 */}
           <div className="card-media">
             {work.mediaType === 'video' ? (
               <video src={work.mediaUrl} controls loop muted playsInline className="media-element" />
@@ -273,13 +402,26 @@ function Card3D({ work, cardIndex, isMobile }: {
             )}
           </div>
 
-          <div className="card-sections">
-            {work.sections.map((section, idx) => (
-              <div key={idx} className="section-row">
-                <div className="section-label">{section.label}</div>
-                <div className="section-content">{section.content}</div>
-              </div>
-            ))}
+          {/* 媒體下方三欄標籤列 */}
+          <div className="card-labels-row">
+            <span className="label-left">{parseStyledText(work.mediaLabels.left)}</span>
+            <span className="label-center">{parseStyledText(work.mediaLabels.center)}</span>
+            <span className="label-right">{parseStyledText(work.mediaLabels.right)}</span>
+          </div>
+
+          {/* 描述區域 */}
+          <div className="card-description-area">
+            <div className="desc-spacer"></div>
+            <div className="desc-content">
+              {parseStyledText(work.description)}
+            </div>
+          </div>
+
+          {/* 底部三欄標籤列 */}
+          <div className="card-labels-row card-labels-bottom">
+            <span className="label-left">{parseStyledText(work.bottomLabels.left)}</span>
+            <span className="label-center">{parseStyledText(work.bottomLabels.center)}</span>
+            <span className="label-right">{parseStyledText(work.bottomLabels.right)}</span>
           </div>
         </div>
       </Html>
@@ -298,7 +440,7 @@ function CameraController({ currentIndex }: { currentIndex: number }) {
   return null;
 }
 
-function CardsScene({ currentIndex, isMobile }: { currentIndex: number; isMobile: boolean }) {
+function CardsScene({ currentIndex, isMobile, isLandscapeTablet }: { currentIndex: number; isMobile: boolean; isLandscapeTablet: boolean }) {
   return (
     <>
       <CameraController currentIndex={currentIndex} />
@@ -310,6 +452,7 @@ function CardsScene({ currentIndex, isMobile }: { currentIndex: number; isMobile
           work={work}
           cardIndex={index}
           isMobile={isMobile}
+          isLandscapeTablet={isLandscapeTablet}
         />
       ))}
     </>
@@ -322,13 +465,23 @@ export default function Private() {
   const [showContent, setShowContent] = useState(false); // 顯示卡片內容
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [isLandscapeTablet, setIsLandscapeTablet] = useState(
+    window.innerWidth > 768 && window.innerWidth <= 1400 && window.innerHeight < window.innerWidth
+  );
 
   // 監聽螢幕尺寸變化
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+      setIsLandscapeTablet(
+        window.innerWidth > 768 && window.innerWidth <= 1400 && window.innerHeight < window.innerWidth
+      );
+    };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  const [triggerReverse, setTriggerReverse] = useState(false); // 倒帶動畫觸發
 
   const handlePasswordCorrect = () => {
     // 開始過渡動畫
@@ -343,6 +496,11 @@ export default function Private() {
     setTimeout(() => {
       setShowContent(true);
     }, 2000);
+
+    // 方塊聚集動畫完成後，觸發倒帶動畫（等待 3.5 秒確保動畫完成）
+    setTimeout(() => {
+      setTriggerReverse(true);
+    }, 3500);
   };
 
   const handleNext = () => {
@@ -366,10 +524,65 @@ export default function Private() {
     }
   };
 
+  // 觸控滑動支援
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+  const isSwiping = useRef(false);
+
+  const handleTouchStart = (e: TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    isSwiping.current = false;
+  };
+
+  const handleTouchMove = (e: TouchEvent) => {
+    if (touchStartX.current === null || touchStartY.current === null) return;
+
+    const deltaX = e.touches[0].clientX - touchStartX.current;
+    const deltaY = e.touches[0].clientY - touchStartY.current;
+
+    // 判斷是否為水平滑動（水平移動距離大於垂直移動距離）
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 30) {
+      e.preventDefault(); // 阻止頁面捲動
+      isSwiping.current = true;
+    }
+  };
+
+  const handleTouchEnd = (e: TouchEvent) => {
+    if (touchStartX.current === null || !isSwiping.current) {
+      touchStartX.current = null;
+      touchStartY.current = null;
+      return;
+    }
+
+    const deltaX = e.changedTouches[0].clientX - touchStartX.current;
+    const swipeThreshold = 50; // 滑動閾值
+
+    if (deltaX < -swipeThreshold) {
+      // 向左滑動 -> 下一張
+      handleNext();
+    } else if (deltaX > swipeThreshold) {
+      // 向右滑動 -> 上一張
+      handlePrev();
+    }
+
+    touchStartX.current = null;
+    touchStartY.current = null;
+    isSwiping.current = false;
+  };
+
   useEffect(() => {
     if (isAuthenticated) {
       window.addEventListener('wheel', handleWheel, { passive: false });
-      return () => window.removeEventListener('wheel', handleWheel);
+      window.addEventListener('touchstart', handleTouchStart, { passive: true });
+      window.addEventListener('touchmove', handleTouchMove, { passive: false });
+      window.addEventListener('touchend', handleTouchEnd, { passive: true });
+      return () => {
+        window.removeEventListener('wheel', handleWheel);
+        window.removeEventListener('touchstart', handleTouchStart);
+        window.removeEventListener('touchmove', handleTouchMove);
+        window.removeEventListener('touchend', handleTouchEnd);
+      };
     }
   }, [isAuthenticated, currentIndex]);
 
@@ -380,6 +593,7 @@ export default function Private() {
         initialPortfolioMode={false}
         enableHomeUI={false}
         triggerPortfolioAnimation={isTransitioning}
+        triggerReverseAnimation={triggerReverse}
       />
 
       <AnimatePresence>
@@ -397,7 +611,7 @@ export default function Private() {
             transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
           >
             <Canvas camera={{ position: [0, 0, isMobile ? 2.5 : 4], fov: isMobile ? 40 : 50 }}>
-              <CardsScene currentIndex={currentIndex} isMobile={isMobile} />
+              <CardsScene currentIndex={currentIndex} isMobile={isMobile} isLandscapeTablet={isLandscapeTablet} />
             </Canvas>
           </motion.div>
 

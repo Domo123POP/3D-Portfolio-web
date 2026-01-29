@@ -224,7 +224,7 @@ const VoxelSnake = () => {
   );
 };
 
-function Cubes({ count = 4000, stage, focusTarget, portfolioMode, onSpecialCubeClick, skipAnimation }: any) { // 增加數量以填滿空間
+function Cubes({ count = 4000, stage, focusTarget, portfolioMode, onSpecialCubeClick, skipAnimation, reverseMode }: any) { // 增加數量以填滿空間
   const { camera } = useThree(); // 取得攝影機以計算距離
   const mesh = useRef<THREE.InstancedMesh>(null!);
   const dummy = useMemo(() => new THREE.Object3D(), []);
@@ -237,6 +237,8 @@ function Cubes({ count = 4000, stage, focusTarget, portfolioMode, onSpecialCubeC
   const randomIndices = useRef(new Set<number>());
   const [textVisible, setTextVisible] = useState(false);
   const portfolioModeStartTime = useRef(0); // 記錄進入作品集模式的時間
+  const reverseModeStartTime = useRef(0); // 記錄倒帶動畫的開始時間
+  const scatteredPositions = useRef<THREE.Vector3[]>([]); // 儲存散開時的位置
 
   // 1. 定義參數 (移除控制面板，改為固定數值)
   const spacing = 10; // 大幅增加間距，降低密度 (原本 15)
@@ -426,26 +428,91 @@ function Cubes({ count = 4000, stage, focusTarget, portfolioMode, onSpecialCubeC
     pickRandom();
   }, [stage, count, portfolioMode, camera, data]);
 
-  // 當進入作品集模式時，重置開始時間
+  // 當進入作品集模式時，重置開始時間並儲存散開位置
   useEffect(() => {
     if (portfolioMode) {
       portfolioModeStartTime.current = -1;
+      // 儲存當前散開的位置，以便倒帶時使用
+      scatteredPositions.current = data.map(d => d.currentPos.clone());
     }
-  }, [portfolioMode]);
+  }, [portfolioMode, data]);
+
+  // 當進入倒帶模式時，重置開始時間
+  useEffect(() => {
+    if (reverseMode) {
+      reverseModeStartTime.current = -1;
+    }
+  }, [reverseMode]);
 
   useFrame((state, delta) => {
     // 更新噪訊動畫時間
     noiseMaterial.uniforms.time.value += delta * 20.0;
-    
+
     // 初始化作品集模式的開始時間
     if (portfolioMode && portfolioModeStartTime.current === -1) {
       portfolioModeStartTime.current = state.clock.elapsedTime;
     }
     const timeDiff = portfolioMode ? state.clock.elapsedTime - portfolioModeStartTime.current : 0;
 
+    // 初始化倒帶模式的開始時間
+    if (reverseMode && (reverseModeStartTime.current === -1 || reverseModeStartTime.current === 0)) {
+      reverseModeStartTime.current = state.clock.elapsedTime;
+    }
+    const reverseTimeDiff = reverseMode && reverseModeStartTime.current > 0
+      ? state.clock.elapsedTime - reverseModeStartTime.current
+      : 0;
+
     let randomRefIndex = 0; // 用來追蹤目前使用了幾個隨機線框
 
     data.forEach((d, i) => {
+      // --- 倒帶模式 (Reverse Mode) ---
+      if (reverseMode && !portfolioMode) {
+        // 如果沒有儲存的散開位置，使用初始位置
+        const hasScattered = scatteredPositions.current.length > 0;
+        if (!hasScattered) return; // 跳過，讓方塊保持原位
+        // 方塊從螢幕牆位置飛回散開的位置
+        const target = scatteredPositions.current[i] || scatteredPositions.current[0];
+        const screenPos = screenData[i] || screenData[0];
+
+        // 波浪散開動畫：根據距離中心的距離決定延遲
+        const distFromCenter = screenPos.length();
+        const delay = distFromCenter * 0.002;
+
+        if (reverseTimeDiff > delay) {
+          d.currentPos.lerp(target, delta * 5); // 加快倒帶速度
+        }
+
+        dummy.position.copy(d.currentPos);
+
+        // 旋轉特效
+        const distToTarget = d.currentPos.distanceTo(target);
+        if (distToTarget > 1) {
+          dummy.rotation.set(distToTarget * 0.15, distToTarget * 0.15, distToTarget * 0.15);
+        } else {
+          dummy.rotation.set(0, 0, 0);
+        }
+
+        dummy.scale.setScalar(1);
+        dummy.updateMatrix();
+
+        if (i < 4) {
+          const el = specialRefs.current[i];
+          if (el) {
+            el.position.copy(dummy.position);
+            el.rotation.copy(dummy.rotation);
+            el.scale.copy(dummy.scale);
+          }
+          if (i === 2 && videoCubeMeshRef.current) {
+            videoCubeMeshRef.current.position.copy(dummy.position);
+            videoCubeMeshRef.current.rotation.copy(dummy.rotation);
+            videoCubeMeshRef.current.scale.copy(dummy.scale);
+          }
+        } else if (mesh.current) {
+          mesh.current.setMatrixAt(i - 4, dummy.matrix);
+        }
+        return;
+      }
+
       // --- 作品集模式 (Portfolio Mode) ---
       if (portfolioMode) {
         // 所有方塊飛向螢幕牆的目標位置
@@ -804,7 +871,7 @@ function Cubes({ count = 4000, stage, focusTarget, portfolioMode, onSpecialCubeC
 }
 
 // 自動運鏡元件
-function CameraRig({ stage, focusTarget, portfolioMode }: any) {
+function CameraRig({ stage, focusTarget, portfolioMode, reverseMode }: any) {
   const currentLookAt = useRef(new THREE.Vector3(0, 0, 0)); // 用來平滑視線焦點
 
   useFrame((state, delta) => {
@@ -812,10 +879,26 @@ function CameraRig({ stage, focusTarget, portfolioMode }: any) {
       // --- 作品集模式：拉遠鏡頭看全貌 ---
       // 目標位置：正對中心，距離拉遠 (Z=500 以容納整個寬度)
       const targetPos = new THREE.Vector3(0, 0, 500);
-      
+
       state.camera.position.lerp(targetPos, delta * 2);
       state.camera.lookAt(0, 0, 0);
       state.camera.up.set(0, 1, 0); // 轉正水平
+      return;
+    }
+
+    if (reverseMode) {
+      // --- 倒帶模式：攝影機回到環繞位置 ---
+      const t = state.clock.elapsedTime * 0.1 + Math.PI / 4;
+      const radius = 120;
+      const targetPos = new THREE.Vector3(
+        Math.sin(t) * radius,
+        Math.sin(t * 0.5 + Math.PI * 1.5) * 30,
+        Math.cos(t) * radius
+      );
+
+      state.camera.position.lerp(targetPos, delta * 1.5);
+      state.camera.up.lerp(new THREE.Vector3(0.2, 1, 0.2), delta * 2);
+      state.camera.lookAt(0, 0, 0);
       return;
     }
 
@@ -897,28 +980,46 @@ function CameraRig({ stage, focusTarget, portfolioMode }: any) {
   return null;
 }
 
-export default function Scene({ initialPortfolioMode = false, enableHomeUI = true, triggerPortfolioAnimation = false }: any) {
+export default function Scene({ initialPortfolioMode = false, enableHomeUI = true, triggerPortfolioAnimation = false, triggerReverseAnimation = false }: any) {
   const navigate = useNavigate();
   const [stage, setStage] = useState(0); // 0: 首頁, 1-4: 方塊特寫
   const focusTarget = useRef(new THREE.Vector3(0, 0, 0)); // 儲存目標方塊的位置
   const [portfolioMode, setPortfolioMode] = useState(initialPortfolioMode); // 支援初始模式
   // 用於區分「是否跳過動畫」：只有 initialPortfolioMode 為 true 時才跳過
   const [skipAnimation, setSkipAnimation] = useState(initialPortfolioMode);
+  const [reverseMode, setReverseMode] = useState(false); // 倒帶動畫模式
+  const hasTriggeredPortfolio = useRef(false); // 追蹤是否已觸發過作品集動畫
 
   // 監聽外部觸發的作品集動畫 (例如 Private 頁面密碼正確後)
+  // 使用 ref 確保只觸發一次，避免與倒帶動畫產生競爭
   useEffect(() => {
-    if (triggerPortfolioAnimation && !portfolioMode) {
+    if (triggerPortfolioAnimation && !hasTriggeredPortfolio.current) {
+      hasTriggeredPortfolio.current = true;
       setSkipAnimation(false); // 確保播放動畫
+      setReverseMode(false);
       setPortfolioMode(true);
     }
-  }, [triggerPortfolioAnimation, portfolioMode]);
+  }, [triggerPortfolioAnimation]);
 
-  // 監聽重置事件 (從 Navbar 觸發)
+  // 監聽倒帶動畫觸發
+  const prevTriggerReverse = useRef(false);
+  useEffect(() => {
+    // 只在 triggerReverseAnimation 從 false 變成 true 時觸發
+    if (triggerReverseAnimation && !prevTriggerReverse.current && portfolioMode) {
+      setReverseMode(true);
+      setPortfolioMode(false);
+    }
+    prevTriggerReverse.current = triggerReverseAnimation;
+  }, [triggerReverseAnimation, portfolioMode]);
+
+  // 監聯重置事件 (從 Navbar 觸發)
   useEffect(() => {
     const handleReset = () => {
       setStage(0);
       setPortfolioMode(false);
       setSkipAnimation(false);
+      setReverseMode(false);
+      hasTriggeredPortfolio.current = false; // 重置觸發狀態
     };
     window.addEventListener('go-home', handleReset);
     return () => window.removeEventListener('go-home', handleReset);
@@ -1004,8 +1105,8 @@ export default function Scene({ initialPortfolioMode = false, enableHomeUI = tru
           <ambientLight intensity={0.5} color="#333333" /> {/* 中性色調環境光 */}
           <directionalLight position={[10, 10, 5]} intensity={1} color="#ffffff" /> {/* 白光主光 */}
           
-          <Cubes stage={stage} focusTarget={focusTarget} portfolioMode={portfolioMode} onSpecialCubeClick={handleSpecialCubeClick} skipAnimation={skipAnimation} />
-          <CameraRig stage={stage} focusTarget={focusTarget} portfolioMode={portfolioMode} />
+          <Cubes stage={stage} focusTarget={focusTarget} portfolioMode={portfolioMode} onSpecialCubeClick={handleSpecialCubeClick} skipAnimation={skipAnimation} reverseMode={reverseMode} />
+          <CameraRig stage={stage} focusTarget={focusTarget} portfolioMode={portfolioMode} reverseMode={reverseMode} />
 
           {/* 後製特效：膠片顆粒濾鏡（發光、噪訊、暈影） */}
           <EffectComposer stencilBuffer={false} multisampling={0} frameBufferType={THREE.HalfFloatType}>
