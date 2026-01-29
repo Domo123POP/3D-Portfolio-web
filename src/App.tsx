@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
 import Scene from './Scene';
 import Navbar from './Navbar';
@@ -30,11 +30,8 @@ function App() {
     return () => document.removeEventListener('contextmenu', handleContextMenu);
   }, []);
 
-  // 取得 base URL 用於 Router basename
-  const basename = import.meta.env.BASE_URL.replace(/\/$/, '') || '';
-
   return (
-    <Router basename={basename}>
+    <Router>
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
