@@ -1,10 +1,11 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import Scene from './Scene';
-import { useState, useEffect, useRef, Suspense, useMemo } from 'react';
+import { useState, useEffect, useRef, Suspense, useMemo, useCallback } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { useGLTF, OrbitControls, useAnimations } from '@react-three/drei';
 import * as THREE from 'three';
 import { Selection, EffectComposer, Outline, Select } from '@react-three/postprocessing';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 // --- Import assets directly for Vite to handle paths ---
 import cncModelUrl from '../media/glb/cnc_ok.glb';
@@ -23,6 +24,88 @@ const octopusFrames = import.meta.glob('../media/webp/octopus/*.webp', { eager: 
 const octopusFrameUrls = Object.keys(octopusFrames)
   .sort()
   .map(key => octopusFrames[key]);
+
+// --- 載入畫面元件 ---
+function LoadingOverlay({ progress, isVisible }: { progress: number; isVisible: boolean }) {
+  const percentage = Math.round(progress * 100);
+
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: '100%',
+      backgroundColor: '#050505',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000,
+      opacity: isVisible ? 1 : 0,
+      pointerEvents: isVisible ? 'auto' : 'none',
+      transition: 'opacity 0.8s ease-out',
+    }}>
+      <style>
+        {`
+          @keyframes stretch {
+            0%, 100% { transform: scaleY(1); }
+            50% { transform: scaleY(2); }
+          }
+        `}
+      </style>
+
+      {/* 實心方塊動畫 */}
+      <div style={{
+        display: 'flex',
+        gap: '8px',
+        marginBottom: '30px',
+        alignItems: 'center',
+      }}>
+        {[...Array(3)].map((_, i) => (
+          <div
+            key={i}
+            style={{
+              width: '12px',
+              height: '12px',
+              backgroundColor: 'white',
+              animation: `stretch 0.8s ease-in-out infinite`,
+              animationDelay: `${i * 0.15}s`,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* 進度條 */}
+      <div style={{
+        width: '200px',
+        height: '2px',
+        backgroundColor: 'rgba(255,255,255,0.2)',
+        borderRadius: '1px',
+        overflow: 'hidden',
+        marginBottom: '15px',
+      }}>
+        <div style={{
+          width: `${percentage}%`,
+          height: '100%',
+          backgroundColor: 'white',
+          transition: 'width 0.3s ease-out',
+        }} />
+      </div>
+
+      {/* 百分比文字 */}
+      <p style={{
+        color: 'rgba(255,255,255,0.8)',
+        fontSize: '14px',
+        fontFamily: 'monospace',
+        letterSpacing: '3px',
+        margin: 0,
+      }}>
+        {percentage}%
+      </p>
+    </div>
+  );
+}
 
 // --- 圖片序列播放組件 ---
 function ImageSequencePlayer({ frames, fps = 24, className }: { frames: string[], fps?: number, className?: string }) {
@@ -602,6 +685,64 @@ export default function ThreeDVfx() {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768 || isTabletDevice);
   const [isPanelExpanded, setIsPanelExpanded] = useState(false);
 
+  // --- 載入狀態管理 ---
+  const [allModelsReady, setAllModelsReady] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [showLoadingOverlay, setShowLoadingOverlay] = useState(true);
+
+  // 預載入所有 GLB 模型
+  const glbModels = useMemo(() => [
+    cncModelUrl,
+    cubeModelUrl,
+    fishModelUrl,
+    octopusModelUrl
+  ], []);
+
+  // 預載入 GLB 模型
+  const preloadModels = useCallback(async () => {
+    const loader = new GLTFLoader();
+    let loadedCount = 0;
+    const totalModels = glbModels.length;
+
+    const loadPromises = glbModels.map(url =>
+      new Promise<void>((resolve) => {
+        loader.load(
+          url,
+          () => {
+            loadedCount++;
+            setLoadingProgress(loadedCount / totalModels);
+            resolve();
+          },
+          undefined,
+          (error) => {
+            console.warn(`Failed to load model: ${url}`, error);
+            loadedCount++;
+            setLoadingProgress(loadedCount / totalModels);
+            resolve();
+          }
+        );
+      })
+    );
+
+    await Promise.all(loadPromises);
+    setAllModelsReady(true);
+  }, [glbModels]);
+
+  // 開始預載入
+  useEffect(() => {
+    preloadModels();
+  }, [preloadModels]);
+
+  // 載入完成後延遲淡出載入畫面
+  useEffect(() => {
+    if (allModelsReady) {
+      const timer = setTimeout(() => {
+        setShowLoadingOverlay(false);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [allModelsReady]);
+
   // 監聽螢幕尺寸變化
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768 || isTabletDevice);
@@ -708,6 +849,9 @@ export default function ThreeDVfx() {
 
   return (
     <>
+      {/* 載入畫面 */}
+      <LoadingOverlay progress={loadingProgress} isVisible={showLoadingOverlay} />
+
       {/* 背景層：Scene 方塊背景（非 Portfolio 3D Web 時顯示） */}
       {projects[currentProjectIndex].title !== "Domo's Portfolio 3D Web" &&
         <Scene initialPortfolioMode={true} enableHomeUI={false} />
