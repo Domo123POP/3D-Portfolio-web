@@ -7,6 +7,22 @@ import { useNavigate } from 'react-router-dom';
 import Scene from './Scene';
 import './Private.css';
 
+// 使用 orientationchange 事件來區分設備旋轉和頁面刷新
+// 設備旋轉時會先觸發 orientationchange，然後可能重新載入頁面
+const wasRotating = sessionStorage.getItem('privateIsRotating') === 'true';
+
+// 如果不是設備旋轉（沒有 rotating 標記），清除認證狀態
+if (!wasRotating) {
+  sessionStorage.removeItem('privateAuthenticated');
+}
+// 清除旋轉標記
+sessionStorage.removeItem('privateIsRotating');
+
+// 監聽設備旋轉事件，在旋轉時設置標記
+window.addEventListener('orientationchange', () => {
+  sessionStorage.setItem('privateIsRotating', 'true');
+});
+
 interface Work {
   id: number;
   title: string;
@@ -343,18 +359,37 @@ function PasswordModal({ onCorrectPassword }: { onCorrectPassword: () => void })
   );
 }
 
-function Card3D({ work, cardIndex, isMobile, isLandscapeTablet }: {
+function Card3D({ work, cardIndex, isMobile, isLandscapeTablet, isPortraitTablet }: {
   work: Work;
   cardIndex: number;
   isMobile: boolean;
   isLandscapeTablet: boolean;
+  isPortraitTablet: boolean;
 }) {
-  // 橫向平板使用固定寬高比，其他情況用視窗高度計算
-  const cardHeight = isLandscapeTablet ? '110vh' : 'calc(100vh - 125px)';
-  const cardWidth = isLandscapeTablet ? '100vw' : (isMobile ? '95vw' : '90vw');
-  const cardMaxWidth = isLandscapeTablet ? '600px' : (isMobile ? '100%' : '800px');
-  // 橫向平板時將卡片往下移動，避免超出頁首
-  const meshY = isLandscapeTablet ? -0.4 : -0.04;
+  // 根據設備類型設定卡片尺寸
+  let cardHeight = 'calc(100vh - 125px)';
+  let cardWidth = '90vw';
+  let cardMaxWidth = '800px';
+  let meshY = -0.04;
+  let distanceFactor = 1.2;
+
+  if (isLandscapeTablet) {
+    cardHeight = '110vh';
+    cardWidth = '100vw';
+    cardMaxWidth = '600px';
+    meshY = -0.4;
+    distanceFactor = 1.5;
+  } else if (isPortraitTablet) {
+    cardHeight = 'calc(100vh - 125px)';
+    cardWidth = '85vw';
+    cardMaxWidth = '700px';
+    meshY = -0.04;
+    distanceFactor = 1.2;
+  } else if (isMobile) {
+    cardWidth = '95vw';
+    cardMaxWidth = '100%';
+    distanceFactor = 1.2;
+  }
 
   return (
     <mesh position={[cardIndex * 2.5, meshY, 0]}>
@@ -362,7 +397,7 @@ function Card3D({ work, cardIndex, isMobile, isLandscapeTablet }: {
       <meshBasicMaterial transparent opacity={0} />
       <Html
         transform
-        distanceFactor={isLandscapeTablet ? 1.5 : (isMobile ? 1.2 : 1.2)}
+        distanceFactor={distanceFactor}
         center
         zIndexRange={[50, 0]}
         style={{
@@ -440,7 +475,7 @@ function CameraController({ currentIndex }: { currentIndex: number }) {
   return null;
 }
 
-function CardsScene({ currentIndex, isMobile, isLandscapeTablet }: { currentIndex: number; isMobile: boolean; isLandscapeTablet: boolean }) {
+function CardsScene({ currentIndex, isMobile, isLandscapeTablet, isPortraitTablet }: { currentIndex: number; isMobile: boolean; isLandscapeTablet: boolean; isPortraitTablet: boolean }) {
   return (
     <>
       <CameraController currentIndex={currentIndex} />
@@ -453,6 +488,7 @@ function CardsScene({ currentIndex, isMobile, isLandscapeTablet }: { currentInde
           cardIndex={index}
           isMobile={isMobile}
           isLandscapeTablet={isLandscapeTablet}
+          isPortraitTablet={isPortraitTablet}
         />
       ))}
     </>
@@ -460,13 +496,21 @@ function CardsScene({ currentIndex, isMobile, isLandscapeTablet }: { currentInde
 }
 
 export default function Private() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  // 從 sessionStorage 讀取認證狀態（模組載入時已處理頁面刷新邏輯）
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return sessionStorage.getItem('privateAuthenticated') === 'true';
+  });
   const [isTransitioning, setIsTransitioning] = useState(false); // 過渡動畫狀態
-  const [showContent, setShowContent] = useState(false); // 顯示卡片內容
+  const [showContent, setShowContent] = useState(() => {
+    return sessionStorage.getItem('privateAuthenticated') === 'true';
+  }); // 顯示卡片內容
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [isLandscapeTablet, setIsLandscapeTablet] = useState(
     window.innerWidth > 768 && window.innerWidth <= 1400 && window.innerHeight < window.innerWidth
+  );
+  const [isPortraitTablet, setIsPortraitTablet] = useState(
+    window.innerWidth > 768 && window.innerWidth <= 1400 && window.innerHeight > window.innerWidth
   );
 
   // 監聽螢幕尺寸變化
@@ -476,14 +520,22 @@ export default function Private() {
       setIsLandscapeTablet(
         window.innerWidth > 768 && window.innerWidth <= 1400 && window.innerHeight < window.innerWidth
       );
+      setIsPortraitTablet(
+        window.innerWidth > 768 && window.innerWidth <= 1400 && window.innerHeight > window.innerWidth
+      );
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const [triggerReverse, setTriggerReverse] = useState(false); // 倒帶動畫觸發
+  const [triggerReverse, setTriggerReverse] = useState(() => {
+    return sessionStorage.getItem('privateAuthenticated') === 'true';
+  }); // 倒帶動畫觸發
 
   const handlePasswordCorrect = () => {
+    // 儲存認證狀態到 sessionStorage
+    sessionStorage.setItem('privateAuthenticated', 'true');
+
     // 開始過渡動畫
     setIsTransitioning(true);
 
@@ -610,8 +662,11 @@ export default function Private() {
             animate={{ x: showContent ? 0 : '100%' }}
             transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
           >
-            <Canvas camera={{ position: [0, 0, isMobile ? 2.5 : 4], fov: isMobile ? 40 : 50 }}>
-              <CardsScene currentIndex={currentIndex} isMobile={isMobile} isLandscapeTablet={isLandscapeTablet} />
+            <Canvas camera={{
+              position: [0, 0, isMobile ? 2.5 : 4],
+              fov: isMobile ? 40 : 50
+            }}>
+              <CardsScene currentIndex={currentIndex} isMobile={isMobile} isLandscapeTablet={isLandscapeTablet} isPortraitTablet={isPortraitTablet} />
             </Canvas>
           </motion.div>
 

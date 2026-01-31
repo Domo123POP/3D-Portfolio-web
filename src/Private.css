@@ -752,6 +752,21 @@
   }
 }
 
+/* 直向平板 (iPad 直向等) */
+@media (min-width: 769px) and (orientation: portrait) {
+  .card-description-area {
+    margin-top: 50px;
+  }
+
+  .card-labels-row.card-labels-bottom {
+    top: calc(100% - 225px);
+  }
+
+  .pagination-dots {
+    bottom: 30px;
+  }
+}
+
 /* 橫向平板 (iPad 橫向等) */
 @media (min-width: 769px) and (max-height: 1100px) and (orientation: landscape) {
   .card-3d-content {
@@ -807,5 +822,9 @@
   .card-info-bar .info-center,
   .card-info-bar .info-right {
     font-size: 0.7rem;
+  }
+
+  .pagination-dots {
+    bottom: 25px;
   }
 }

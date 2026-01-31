@@ -358,9 +358,14 @@ const CNC_CAMERA_CONFIG = {
 // --- Canvas container for the R3F CNC model ---
 function CncModelViewer({ url }: { url: string; }) {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  // 動態計算 Outline 解析度，根據螢幕實際像素寬度
+  const [outlineWidth, setOutlineWidth] = useState(Math.floor(window.innerWidth * window.devicePixelRatio));
 
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+      setOutlineWidth(Math.floor(window.innerWidth * window.devicePixelRatio));
+    };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -371,6 +376,7 @@ function CncModelViewer({ url }: { url: string; }) {
     <div className="main-glb-viewer"> {/* Use the same class to preserve styling */}
       <Canvas
         gl={{ powerPreference: 'high-performance' }}
+        dpr={[1, 2]} // 支援高 DPI 顯示器，最高 2 倍像素密度
         camera={{ position: cameraConfig.position, fov: cameraConfig.fov, up: [-Math.SQRT1_2, Math.SQRT1_2, 0] }}>
         <ambientLight intensity={1.5} />
         <directionalLight position={[10, 10, 5]} intensity={1}
@@ -384,7 +390,7 @@ function CncModelViewer({ url }: { url: string; }) {
                   visibleEdgeColor={0xffffff}
                   hiddenEdgeColor={0xffffff}
                   edgeStrength={3}
-                  width={1000}
+                  width={outlineWidth}
                 />
               </EffectComposer>
               <Select enabled>

@@ -17,6 +17,8 @@ const isTabletDevice = /iPad/i.test(navigator.userAgent) ||
 const isPortrait = window.innerHeight > window.innerWidth;
 // 使用手機版排版：觸控設備 + 直向（手機/平板橫放都用桌面版）
 const isMobileDevice = isTouchDevice && isPortrait;
+// 檢測是否為直向平板（使用與 CSS 媒體查詢相同的邏輯）
+const isPortraitTablet = window.innerWidth > 768 && window.innerWidth <= 1024 && window.innerHeight > window.innerWidth;
 
 // 監聽螢幕旋轉，重新載入頁面以更新排版（觸控設備都需要）
 if (isTouchDevice) {
@@ -97,6 +99,8 @@ interface FrameData {
   mobilePosition?: [number, number, number];
   mobileScale?: number;
   mobileFocusDistance?: number;
+  // 直向平板專屬設定
+  portraitTabletScale?: number;
 }
 
 const framesData: FrameData[] = [
@@ -115,11 +119,14 @@ const framesData: FrameData[] = [
     mobilePosition: [0, 0, 0],
     mobileScale: 0.5,
     mobileFocusDistance: 2.8,
+    // 直向平板設定
+    portraitTabletScale: 0.5,
   },
   {
     id: 1,
     position: [2.5, 2.0, -2],
     width: 2.5, height: 1.4,
+    scale: 1,
     textureUrl: '/media/webm/flash_cube.webm',
     highResTextureUrl: '/media/webm/flash_cube.webm',
     title: 'Zen.V Bot Qi2.2 Fast Charger',
@@ -129,11 +136,14 @@ const framesData: FrameData[] = [
     mobilePosition: [1.5, 1.3, -2],
     mobileScale: 0.7,
     mobileFocusDistance: 3.0,
+    // 直向平板設定
+    portraitTabletScale: 0.7,
   },
   {
     id: 2,
     position: [-3.2, -1.7, -1],
     width: 1.5, height: 2.1,
+    scale: 1,
     textureUrl: '/media/webp/blackmarket-poster.webp',
     highResTextureUrl: '/media/webp/blackmarket-poster.webp',
     title: 'Brand Identity | Black Market Bar',
@@ -142,11 +152,14 @@ const framesData: FrameData[] = [
     mobilePosition: [-1.45, -2.3, -1],
     mobileScale: 0.6,
     mobileFocusDistance: 3.0,
+    // 直向平板設定
+    portraitTabletScale: 0.5,
   },
   {
     id: 3,
     position: [3.2, -2.2, -1],
     width: 2.5, height: 1.65,
+    scale: 1,
     textureUrl: '/media/webp/skmt-1.webp',
     highResTextureUrl: '/media/webp/skmt-1.webp',
     title: 'skmt: 坂本龍一とは誰か',
@@ -155,6 +168,8 @@ const framesData: FrameData[] = [
     mobilePosition: [0.45, -2.35, -1],
     mobileScale: 0.6,
     mobileFocusDistance: 3.0,
+    // 直向平板設定
+    portraitTabletScale: 0.45,
   },
   {
     id: 4,
@@ -171,11 +186,13 @@ const framesData: FrameData[] = [
     mobilePosition: [-0.2, 0.8, -0.2],
     mobileScale: 0.55,
     mobileFocusDistance: 1.8,
+    // 直向平板設定
+    portraitTabletScale: 0.5,
   },
   {
     id: 5,
     position: [5.5, 0, -3],
-   width: 2.75, height: 1.0,
+    width: 2.75, height: 1.0,
     scale: 1.4,
     focusDistance: 2.8,
     textureUrl: '/media/webp/ar-1.webp',
@@ -186,6 +203,8 @@ const framesData: FrameData[] = [
     mobilePosition: [0.25, 2.5, -2],
     mobileScale: 0.75,
     mobileFocusDistance: 2.8,
+    // 直向平板設定
+    portraitTabletScale: 0.5,
   },
   {
     id: 6,
@@ -202,6 +221,8 @@ const framesData: FrameData[] = [
     mobilePosition: [1.85, -2.1, -5.7],
     mobileScale: 1.8,
     mobileFocusDistance: 4.3,
+    // 直向平板設定
+    portraitTabletScale: 1.0,
   },
   {
     id: 7,
@@ -217,6 +238,8 @@ const framesData: FrameData[] = [
     mobilePosition: [-1.75, 1.4, -2.1],
     mobileScale: 1.0,
     mobileFocusDistance: 2.8,
+    // 直向平板設定
+    portraitTabletScale: 1.0,
   },
   {
     id: 8,
@@ -233,6 +256,8 @@ const framesData: FrameData[] = [
     mobilePosition: [5.5, 2.8, -2],
     mobileScale: 1.05,
     mobileFocusDistance: 3.5,
+    // 直向平板設定
+    portraitTabletScale: 1.0,
   },
   {
     id: 9,
@@ -248,6 +273,8 @@ const framesData: FrameData[] = [
     mobilePosition: [-1.5, -1.8, -4.5],
     mobileScale: 1.3,
     mobileFocusDistance: 2.8,
+    // 直向平板設定
+    portraitTabletScale: 0.9,
   }
 ];
 
@@ -263,6 +290,9 @@ interface SubFrameData {
   // 手機版專屬設定
   mobilePosition?: [number, number, number];
   mobileScale?: number;
+  // 直向平板專屬設定
+  portraitTabletPosition?: [number, number, number];
+  portraitTabletScale?: number;
   // 圖片序列專用
   frameCount?: number;  // 總幀數
   fps?: number;         // 播放速度
@@ -278,6 +308,9 @@ const subFramesData: SubFrameData[] = [
     width: 0.035,
     // 手機版設定
     mobilePosition: [-0.25, 0.3, 1.0] as [number, number, number],
+    // 直向平板設定
+    portraitTabletPosition: [-0.37, 0.3, 0.5] as [number, number, number],
+    portraitTabletScale: 0.65,
   },
   {
     id: 1000,
@@ -288,6 +321,9 @@ const subFramesData: SubFrameData[] = [
     width: 0.04,
     // 手機版設定
     mobilePosition: [0.4, 0.24, 0.5] as [number, number, number],
+    // 直向平板設定
+    portraitTabletPosition: [0.42, 0.15, 0.5] as [number, number, number],
+    portraitTabletScale: 0.7,
   },
   {
     id: 1001,
@@ -297,32 +333,43 @@ const subFramesData: SubFrameData[] = [
       {
         color: '#375158',
         position: [0.95, 0.12, 1] as [number, number, number],
-        mobilePosition: [0.95, 0.12, 1] as [number, number, number], // 手機版位置
-        mobileScale: 0.6 // 手機版縮放
+        mobilePosition: [0.95, 0.12, 1] as [number, number, number],
+        mobileScale: 0.6,
+        portraitTabletPosition: [0.23, 0.06, 1] as [number, number, number],
+        portraitTabletScale: 0.25,
       },
       {
         color: '#8d5a0f',
         position: [1.1, 0.12, 1] as [number, number, number],
-        mobilePosition: [1.05, 0.12, 1] as [number, number, number], // 手機版位置
-        mobileScale: 0.6 // 手機版縮放
+        mobilePosition: [1.05, 0.12, 1] as [number, number, number],
+        mobileScale: 0.6,
+        portraitTabletPosition: [0.265, 0.06, 1] as [number, number, number],
+        portraitTabletScale: 0.25,
       },
       {
         color: '#752e12',
         position: [1.25, 0.12, 1] as [number, number, number],
-        mobilePosition: [1.15, 0.12, 1] as [number, number, number], // 手機版位置
-        mobileScale: 0.6 // 手機版縮放
+        mobilePosition: [1.15, 0.12, 1] as [number, number, number],
+        mobileScale: 0.6,
+        portraitTabletPosition: [0.3, 0.06, 1] as [number, number, number],
+        portraitTabletScale: 0.25,
       },
       {
         color: '#5a080a',
         position: [1.4, 0.12, 1] as [number, number, number],
-        mobilePosition: [1.25, 0.12, 1] as [number, number, number], // 手機版位置
-        mobileScale: 0.6 // 手機版縮放
+        mobilePosition: [1.25, 0.12, 1] as [number, number, number],
+        mobileScale: 0.6,
+        portraitTabletPosition: [0.335, 0.06, 1] as [number, number, number],
+        portraitTabletScale: 0.25,
       }
     ],
     position: [0, 0, 0] as [number, number, number],
     width: 0.05,
     // 手機版設定
     mobilePosition: [-0.65, 0, 0] as [number, number, number],
+    // 直向平板設定
+    portraitTabletPosition: [0, 0, 0] as [number, number, number],
+    portraitTabletScale: 1,
   },
   {
     id: 101,
@@ -333,6 +380,9 @@ const subFramesData: SubFrameData[] = [
     width: 0.06,
     // 手機版設定
     mobilePosition: [0, -0.4, 0.1] as [number, number, number],
+    // 直向平板設定
+    portraitTabletPosition: [0, -0.35, 0.1] as [number, number, number],
+    portraitTabletScale: 0.7,
   },
   {
     id: 102,
@@ -343,6 +393,9 @@ const subFramesData: SubFrameData[] = [
     width: 0.05,
     // 手機版設定
     mobilePosition: [0.0, -0.57, 0.1] as [number, number, number],
+    // 直向平板設定
+    portraitTabletPosition: [0.0, -0.51, 0.1] as [number, number, number],
+    portraitTabletScale: 0.7,
   },
   {
     id: 103,
@@ -353,6 +406,9 @@ const subFramesData: SubFrameData[] = [
     width: 0.04,
     // 手機版設定
     mobilePosition: [0.0, -0.27, 0.1] as [number, number, number],
+    // 直向平板設定
+    portraitTabletPosition: [0.0, -0.25, 0.1] as [number, number, number],
+    portraitTabletScale: 0.7,
   },
   {
     id: 104,
@@ -363,6 +419,9 @@ const subFramesData: SubFrameData[] = [
     width: 0.07,
     // 手機版設定
     mobilePosition: [0.0, -0.8, 0.4] as [number, number, number],
+    // 直向平板設定
+    portraitTabletPosition: [0.0, -0.55, 0.1] as [number, number, number],
+    portraitTabletScale: 0.85,
   },
   {
     id: 105,
@@ -373,6 +432,9 @@ const subFramesData: SubFrameData[] = [
     width: 0.08,
     // 手機版設定
     mobilePosition: [0.0, -0.55, 0.1] as [number, number, number],
+    // 直向平板設定
+    portraitTabletPosition: [0.0, -0.5, 0.1] as [number, number, number],
+    portraitTabletScale: 0.7,
   },
   {
     id: 106,
@@ -383,6 +445,9 @@ const subFramesData: SubFrameData[] = [
     width: 0.07,
     // 手機版設定
     mobilePosition: [0.0, -0.65, 0.1] as [number, number, number],
+    // 直向平板設定
+    portraitTabletPosition: [0.0, -0.45, 0.1] as [number, number, number],
+    portraitTabletScale: 0.5,
   },
   {
     id: 200,
@@ -396,6 +461,9 @@ const subFramesData: SubFrameData[] = [
     // 手機版設定
     mobilePosition: [0.7, -1.0, -0.1] as [number, number, number],
     mobileScale: 0.7,
+    // 直向平板設定
+    portraitTabletPosition: [0.59, -0.72, 0.0] as [number, number, number],
+    portraitTabletScale: 0.5,
   },
   {
     id: 201,
@@ -405,9 +473,13 @@ const subFramesData: SubFrameData[] = [
     position: [1.5, 1.0, 0.0] as [number, number, number],
     width: 1.0,
     height: 1.0,
+    scale: 1,
     // 手機版設定
     mobilePosition: [-0.7, 0.9, -0.1] as [number, number, number],
     mobileScale: 0.75,
+    // 直向平板設定
+    portraitTabletPosition: [0.65, 0.6, 0.0] as [number, number, number],
+    portraitTabletScale: 0.5,
   },
   {
     id: 202,
@@ -421,6 +493,9 @@ const subFramesData: SubFrameData[] = [
     // 手機版設定
     mobilePosition: [0.65, 1.15, 0.0] as [number, number, number],
     mobileScale: 0.9,
+    // 直向平板設定
+    portraitTabletPosition: [-0.67, 0.1, 0.0] as [number, number, number],
+    portraitTabletScale: 0.5,
   },
   {
     id: 203,
@@ -430,9 +505,13 @@ const subFramesData: SubFrameData[] = [
     position: [-1.7, 1.0, -0.2] as [number, number, number],
     width: 1.8,
     height: 1.0,
+    scale: 1,
     // 手機版設定
     mobilePosition: [0.7, 1.0, -0.2] as [number, number, number],
     mobileScale: 0.7,
+    // 直向平板設定
+    portraitTabletPosition: [-0.62, 0.55, -0.2] as [number, number, number],
+    portraitTabletScale: 0.5,
   },
   {
     id: 204,
@@ -442,9 +521,13 @@ const subFramesData: SubFrameData[] = [
     position: [1.5, 1.3, 0.2] as [number, number, number],
     width: 1.8,
     height: 1.0,
+    scale: 1,
     // 手機版設定
     mobilePosition: [-0.6, 0.8, 0.2] as [number, number, number],
     mobileScale: 0.55,
+    // 直向平板設定
+    portraitTabletPosition: [0.5, 0.62, 0.2] as [number, number, number],
+    portraitTabletScale: 0.5,
   },
   {
     id: 205,
@@ -454,9 +537,13 @@ const subFramesData: SubFrameData[] = [
     position: [2.0, -1.5, -0.15] as [number, number, number],
     width: 1.6,
     height: 1.0,
+    scale: 1,
     // 手機版設定
     mobilePosition: [0.65, -0.95, -0.15] as [number, number, number],
     mobileScale: 0.7,
+    // 直向平板設定
+    portraitTabletPosition: [0.55, -0.8, -0.15] as [number, number, number],
+    portraitTabletScale: 0.5,
   },
   {
     id: 206,
@@ -470,6 +557,9 @@ const subFramesData: SubFrameData[] = [
     // 手機版設定
     mobilePosition: [-0.5, -0.45, -0.15] as [number, number, number],
     mobileScale: 0.35,
+    // 直向平板設定
+    portraitTabletPosition: [-0.5, -0.4, -0.15] as [number, number, number],
+    portraitTabletScale: 0.25,
   },
   {
     id: 207,
@@ -483,6 +573,9 @@ const subFramesData: SubFrameData[] = [
     // 手機版設定
     mobilePosition: [0.4, -0.45, 0.2] as [number, number, number],
     mobileScale: 0.35,
+    // 直向平板設定
+    portraitTabletPosition: [0.27, -0.38, 0.2] as [number, number, number],
+    portraitTabletScale: 0.25,
   },
   {
     id: 208,
@@ -496,6 +589,9 @@ const subFramesData: SubFrameData[] = [
     // 手機版設定
     mobilePosition: [0.38, 0.5, 0.1] as [number, number, number],
     mobileScale: 0.45,
+    // 直向平板設定
+    portraitTabletPosition: [0.32, 0.37, 0.1] as [number, number, number],
+    portraitTabletScale: 0.3,
   },
   {
     id: 209,
@@ -509,6 +605,9 @@ const subFramesData: SubFrameData[] = [
     // 手機版設定
     mobilePosition: [-0.5, 0.9, -0.75] as [number, number, number],
     mobileScale: 0.75,
+    // 直向平板設定
+    portraitTabletPosition: [-0.54, 0.75, -0.75] as [number, number, number],
+    portraitTabletScale: 0.65,
   },
   {
     id: 210,
@@ -522,6 +621,9 @@ const subFramesData: SubFrameData[] = [
     // 手機版設定
     mobilePosition: [-0.4, 0.9, 0.55] as [number, number, number],
     mobileScale: 0.7,
+    // 直向平板設定
+    portraitTabletPosition: [-0.37, 0.65, 0.55] as [number, number, number],
+    portraitTabletScale: 0.5,
   },
   {
     id: 211,
@@ -535,6 +637,9 @@ const subFramesData: SubFrameData[] = [
     // 手機版設定
     mobilePosition: [1.0, -1.3, -0.7] as [number, number, number],
     mobileScale: 0.65,
+    // 直向平板設定
+    portraitTabletPosition: [0.9, -1.2, -0.7] as [number, number, number],
+    portraitTabletScale: 0.55,
   },
   {
     id: 212,
@@ -548,6 +653,9 @@ const subFramesData: SubFrameData[] = [
     // 手機版設定
     mobilePosition: [0.95, 0.7, -0.7] as [number, number, number],
     mobileScale: 2,
+    // 直向平板設定
+    portraitTabletPosition: [0.88, 0.48, -0.7] as [number, number, number],
+    portraitTabletScale: 2,
   },
   {
     id: 213,
@@ -561,6 +669,9 @@ const subFramesData: SubFrameData[] = [
     // 手機版設定
     mobilePosition: [-0.955, 0.7, -0.7] as [number, number, number],
     mobileScale: 0.7,
+    // 直向平板設定
+    portraitTabletPosition: [-0.95, 0.45, -0.7] as [number, number, number],
+    portraitTabletScale: 0.6,
   },
   {
     id: 214,
@@ -574,6 +685,9 @@ const subFramesData: SubFrameData[] = [
     // 手機版設定
     mobilePosition: [0.4, -0.35, 0.5] as [number, number, number],
     mobileScale: 0.7,
+    // 直向平板設定
+    portraitTabletPosition: [0.2, -0.3, 0.5] as [number, number, number],
+    portraitTabletScale: 0.7,
   },
   {
     id: 215,
@@ -589,6 +703,9 @@ const subFramesData: SubFrameData[] = [
     // 手機版設定
     mobilePosition: [-0.35, 0.35, 0.9] as [number, number, number],
     mobileScale: 0.7,
+    // 直向平板設定
+    portraitTabletPosition: [-0.35, 0.42, 0.4] as [number, number, number],
+    portraitTabletScale: 0.75,
   },
   {
     id: 216,
@@ -602,6 +719,9 @@ const subFramesData: SubFrameData[] = [
     // 手機版設定
     mobilePosition: [0.55, 1, -0.7] as [number, number, number],
     mobileScale: 0.7,
+    // 直向平板設定
+    portraitTabletPosition: [0.65, 0.8, -0.7] as [number, number, number],
+    portraitTabletScale: 0.6,
   }
 ];
 
@@ -739,7 +859,7 @@ function TextureDisplayer({ url, opacity, alphaMap }: { url: string; opacity: nu
 function Frame({
   position, width, height, textureUrl, highResTextureUrl, index,
   isFocused, isInitialView, videoUrl, onFrameClick, scale,
-  allFramesReady, mobilePosition, mobileScale
+  allFramesReady, mobilePosition, mobileScale, portraitTabletScale
 }: {
   position: [number, number, number];
   width: number;
@@ -755,13 +875,19 @@ function Frame({
   allFramesReady: boolean;
   mobilePosition?: [number, number, number];
   mobileScale?: number;
+  portraitTabletScale?: number;
 }) {
   const meshRef = useRef<THREE.Group>(null!);
   const [opacity, setOpacity] = useState(0);
 
-  // 使用手機版設定（如果有提供）
+  // 根據設備類型選擇位置和縮放（優先順序：直向平板 > 手機 > 預設）
   const finalPosition = isMobileDevice && mobilePosition ? mobilePosition : position;
-  const finalScale = isMobileDevice && mobileScale !== undefined ? mobileScale : (scale || 1);
+  let finalScale = scale || 1;
+  if (isPortraitTablet && portraitTabletScale !== undefined) {
+    finalScale = portraitTabletScale;
+  } else if (isMobileDevice && mobileScale !== undefined) {
+    finalScale = mobileScale;
+  }
 
   const urlToLoad = isFocused ? highResTextureUrl : textureUrl;
   const alphaMap = useMemo(() => getAlphaMap(width, height), [width, height]);
@@ -908,9 +1034,21 @@ function SubFrame({ data, isParentFocused }: {
   const textRef = useRef<any>(null);
   const circleMaterialRefs = useRef<(THREE.MeshBasicMaterial | null)[]>([]);
 
-  // 使用手機版設定（如果有提供）
-  const finalPosition = isMobileDevice && data.mobilePosition ? data.mobilePosition : data.position;
-  const finalScale = isMobileDevice && data.mobileScale !== undefined ? data.mobileScale : (data.scale || 1);
+  // 根據設備類型選擇位置和縮放（優先順序：直向平板 > 手機 > 預設）
+  let finalPosition = data.position;
+  let finalScale = data.scale || 1;
+
+  if (isPortraitTablet && data.portraitTabletPosition) {
+    finalPosition = data.portraitTabletPosition;
+  } else if (isMobileDevice && data.mobilePosition) {
+    finalPosition = data.mobilePosition;
+  }
+
+  if (isPortraitTablet && data.portraitTabletScale !== undefined) {
+    finalScale = data.portraitTabletScale;
+  } else if (isMobileDevice && data.mobileScale !== undefined) {
+    finalScale = data.mobileScale;
+  }
 
   // Since all textures are preloaded, we can call useTexture directly.
   const texture = data.type === 'image' ? useTexture(getAssetPath(data.content)) : null;
@@ -983,9 +1121,21 @@ function SubFrame({ data, isParentFocused }: {
       {data.type === 'color-palette' && (
         <group>
           {(data.content as any[]).map((circle, index) => {
-            // 使用手機版位置和縮放（如果有提供）
-            const circlePosition = isMobileDevice && circle.mobilePosition ? circle.mobilePosition : circle.position;
-            const circleScale = isMobileDevice && circle.mobileScale !== undefined ? circle.mobileScale : 1.0;
+            // 根據設備類型選擇位置和縮放（優先順序：直向平板 > 手機 > 預設）
+            let circlePosition = circle.position;
+            let circleScale = 1.0;
+
+            if (isPortraitTablet && circle.portraitTabletPosition) {
+              circlePosition = circle.portraitTabletPosition;
+            } else if (isMobileDevice && circle.mobilePosition) {
+              circlePosition = circle.mobilePosition;
+            }
+
+            if (isPortraitTablet && circle.portraitTabletScale !== undefined) {
+              circleScale = circle.portraitTabletScale;
+            } else if (isMobileDevice && circle.mobileScale !== undefined) {
+              circleScale = circle.mobileScale;
+            }
             return (
               <mesh key={index} position={circlePosition} scale={circleScale} geometry={circleGeometry}>
                 <meshBasicMaterial
@@ -1033,7 +1183,8 @@ function Experience({
     if (!allFramesReady) return;
 
     if (isInitialView) {
-      const overviewPosition = new THREE.Vector3(0, 0, 4);
+      // 直向平板使用較近的總覽位置，讓畫面看起來更大
+      const overviewPosition = new THREE.Vector3(0, 0, isPortraitTablet ? 2.5 : 4);
       const overviewLookAt = new THREE.Vector3(0, 0, 0);
       camera.position.lerp(overviewPosition, delta * 1.5);
       targetLookAt.current.lerp(overviewLookAt, delta * 1.5);
@@ -1044,9 +1195,13 @@ function Experience({
       const framePosition = isMobileDevice && targetFrame.mobilePosition
         ? targetFrame.mobilePosition
         : targetFrame.position;
-      const focusDistance = isMobileDevice && targetFrame.mobileFocusDistance !== undefined
+      // 直向平板使用較小的 focusDistance（乘以 0.6），讓攝影機更接近作品，維持過渡動畫的距離感
+      let focusDistance = isMobileDevice && targetFrame.mobileFocusDistance !== undefined
         ? targetFrame.mobileFocusDistance
         : (targetFrame.focusDistance || cameraFocusDistance);
+      if (isPortraitTablet) {
+        focusDistance = focusDistance * 0.6;
+      }
 
       const cameraTargetPosition = new THREE.Vector3(
         framePosition[0],
@@ -1081,6 +1236,7 @@ function Experience({
               allFramesReady={allFramesReady}
               mobilePosition={frame.mobilePosition}
               mobileScale={frame.mobileScale}
+              portraitTabletScale={frame.portraitTabletScale}
             />
             {subFramesData
               .filter(sf => sf.parentFrameId === frame.id)
@@ -1462,7 +1618,10 @@ export default function Video() {
           {isTouchDevice ? '↑' : '↓'}
         </div>
       </div>
-      <Canvas camera={{ position: [0, 0, 10], fov: 75 }}>
+      <Canvas camera={{
+        position: [0, 0, 10],
+        fov: 75
+      }}>
         <color attach="background" args={['#050505']} />
         <ambientLight intensity={0.2} />
         <Suspense fallback={null}>

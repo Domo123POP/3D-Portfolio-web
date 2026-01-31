@@ -15,3 +15,10 @@ body {
     transform: translateY(-5vh);
   }
 }
+
+/* 直向平板 (iPad 直向)：整體往上移動 */
+@media (min-width: 769px) and (max-width: 1024px) and (orientation: portrait) {
+  .video-container {
+    transform: translateY(-5vh);
+  }
+}
